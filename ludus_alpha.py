@@ -24,7 +24,8 @@ Type one of the following options to modify:
 - 'flip': whether the board flips after each player's turn
 - 'language': change interface language
 """,
-'white':'White', 'black':'Black', 'turn':"'s turn", 'check':" is in check.",
+'w':'White', 'b':'Black', 'turn':"'s turn", 'check':" is in check.",
+'draw_query':'{} proposes a draw. Does {} agree? (yes/no)', 'resign':"{} resigns. {} wins the game.", 'draw':"The game is drawn.", 'pause':"The game has been paused.",
 'inverted':" Inverted colors.",
 'sizes':"The following sizes are available:", 'size_success':" Successfully changed size.\n", 'size_fail':" That size wasn't found!",
 'flip_on':" The board will now flip after each player's turn.", 'flip_off':" The board stops flipping.",
@@ -42,7 +43,8 @@ Geben Sie eines der folgenden ein um es zu bearbeiten:
 - 'drehen': Ob das Brett nach jedem Zug sich entsprechend dreht
 - 'sprache': Sprache ändern
 """,
-'white':'Weiss', 'black':'Schwarz', 'turn':" ist am Zug.", 'check':" steht im Schach.",
+'w':'Weiss', 'b':'Schwarz', 'turn':" ist am Zug.", 'check':" steht im Schach.",
+'draw_query':'{} schlägt ein Remis vor. Akzeptiert {}? (ja/nein)', 'resign':"{} gibt auf. {} gewinnt die Partie.", 'draw':"Die Partie endet in einem Remis.", 'pause':"Die Partie wurde pausiert.",
 'inverted':" Farben wurden umgekehrt",
 'sizes':"Wählen Sie eine der folgenden Grössen:", 'size_success':" Die Grösse wurde erfolgreich aktualisiert\n", 'size_fail':" Die eingegebene Grösse existiert nicht!",
 'flip_on':" Das Brett dreht sich nach jedem Zug dem entsprechenden Spieler.", 'flip_off':" Das Brett dreht sich nicht mehr.",
@@ -120,7 +122,7 @@ styles = {
 '---X---',
 '-X-X-X-',
 '-X-X-X-',
-'-X-X-X-',
+'-XXXXX-',
 '--XXX--',
 '-------',
 ),
@@ -452,7 +454,7 @@ def sign(x): #1, -1 or 0 for positive/negative numbers and zero
         return int(x/abs(x))
     except:
         return 1
-def display_board_single(board=board): #smallest display of chess board in terminal
+def display_board_single(board): #smallest display of chess board in terminal
     Unicode = {'w':{'K':'♔', 'Q':'♕', 'R':'♖', 'B':'♗', 'N':'♘', 'P':'♙'}, 'b':{'K':'♚', 'Q':'♛', 'R':'♜', 'B':'♝', 'N':'♞', 'P':'♟'}, 'x':{'X':'-'}}
     Ascii = {'w':{'K':'k', 'Q':'q', 'R':'r', 'B':'b', 'N':'n', 'P':'p'}, 'b':{'K':'K', 'Q':'Q', 'R':'R', 'B':'B', 'N':'N', 'P':'P'}, 'x':{'X':'-'}}
     style_used = Ascii
@@ -462,7 +464,8 @@ def display_board_single(board=board): #smallest display of chess board in termi
             print(style_used[square[0]][square[1]].replace('-', {0:col['l'], 1:col['d']}[(rank_num+square_num)%2] ), end='')
         print()
     print('\n  '+"abcdefgh"[::flip[turn%2]])
-def display_board(board=board): # displays board in terminal
+def display_board(board): # displays board in terminal
+    print()
     for rank_num, rank in enumerate(board[::-flip[turn%2]]):
         for row_num, row in enumerate(style['K']):
             print(' '+str((8-rank_num if flip[turn%2]==1 else rank_num+1)) if row_num==int(len(style['K'])/2) else '  ', end='')
@@ -471,13 +474,13 @@ def display_board(board=board): # displays board in terminal
                 #print(style[square[1]][row_num].replace('l', col[{'w':'b','b':'w', 'x':'x'}[square[0]]]).replace('X', col[square[0]]).replace('-', {0:col['w'], 1:col['b']}[(rank_num+square_num)%2]), end='')
             print()
     print('  '+"{s2}A{s}B{s}C{s}D{s}E{s}F{s}G{s}H{s2}".format(s=(len(style['K'])-1)*' ', s2=int((len(style['K'])-1)/2)*' ')[::flip[turn%2]])
-def find_king(color, board=board): #finds the king of a specific player on the board
+def find_king(color, board): #finds the king of a specific player on the board
     for rank_num, rank in enumerate(board):
         for file_num, square in enumerate(rank):
             if square==color+'K':
                 return rank_num, file_num
     return (-1,-1)
-def not_attacked(playercol, rank, file, board=board): #checks, whether a certain square is attacked by a certain color
+def not_attacked(playercol, rank, file, board): #checks, whether a certain square is attacked by a certain color
     enemy_color = {'w':'b','b':'w'}[playercol]
     forward = {'w':-1, 'b':1}[enemy_color]
     for x,y in ((1,0), (-1,0), (0,1), (0,-1)): #attacked by queen/rook?
@@ -521,10 +524,7 @@ def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #
     move_in_domain = True
     path_available = True
     special_move = ''
-    print(" FORWARD:", forward, " PIECE:",s_piece, "\n RANK, FILE DIFFERENCE:", rank_diff, file_diff, "\n OWN FIGURE:", own_figure, "\n NOT BLOCKED BY OWN:", not_blocked_own) #!!
-
     if s_piece[1]=='R': #Rook/Turm
-        print("ROOK")#!!
         move_in_domain = bool(rank_diff) ^ bool(file_diff) #move vertically or horizontally only
         if rank_diff!=0: #moved along a file
             for i in range(1, abs(rank_diff)):
@@ -534,21 +534,14 @@ def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #
             for i in range(1, abs(file_diff)):
                 path_available = board[s_rank][s_file+sign(file_diff)*i]=="xX"
                 if not path_available: break
-        else: print("ERROR R")
-
     elif s_piece[1]=='N': #Knight/Springer
-        print("KNIGHT")#!!
         move_in_domain = (abs(rank_diff), abs(file_diff))==(1,2) or (abs(rank_diff), abs(file_diff))==(2,1) #L-shape
-
     elif s_piece[1]=='B': #Bishop/Läufer
-        print("BISHOP")#!!
         move_in_domain = abs(rank_diff)==abs(file_diff) #on a diagonal
         for i in range(1, abs(rank_diff)):
             path_available = board[s_rank+sign(rank_diff)*i][s_file+sign(file_diff)*i]=="xX" #diagonal not blocked
             if not path_available: break
-
     elif s_piece[1]=='Q': #Queen/Dame
-        print("QUEEN")#!!
         move_in_domain = bool(rank_diff)^bool(file_diff) or abs(rank_diff)==abs(file_diff) #along rank, file or diagonal
         if bool(rank_diff)^bool(file_diff) and rank_diff!=0: #along a file
             for i in range(1, abs(rank_diff)):
@@ -562,18 +555,14 @@ def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #
             for i in range(1, abs(rank_diff)):
                 path_available = board[s_rank+sign(rank_diff)*i][s_file+sign(file_diff)*i]=="xX"
                 if not path_available: break
-        else: print("ERROR Q")#!!
-
     elif s_piece[1]=='K': #King/König
-        print("KING")#!!
         move_in_domain_castling = (rank_diff, abs(file_diff))==(0,2)
         squares_free = board[e_rank][e_file]=='xX' and board[e_rank][s_file+int(file_diff/2)]=='xX'
-        squares_not_attacked = not_attacked(playercol, e_rank, e_file) and not_attacked(playercol, e_rank, s_file+int(file_diff/2))
+        squares_not_attacked = not_attacked(playercol, e_rank, e_file, board) and not_attacked(playercol, e_rank, s_file+int(file_diff/2), board)
         king_unmoved = False
         if (s_rank, s_file)=={'w':(0,4), 'b':(7,4)}[playercol]:
             king_unmoved = True
             for move in history:
-                print(move)
                 if move[0]=={'w':'e1', 'b':'e8'}[playercol]:
                     king_unmoved = False
                     break
@@ -594,50 +583,35 @@ def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #
                         break
                 if rook_unmoved:
                     special_move = 'castling_queenside'
-        print("[move_in_domain_castling, squares_free, squares_not_attacked, king_unmoved, rook_unmoved]",[move_in_domain_castling, squares_free, squares_not_attacked, king_unmoved, rook_unmoved])
         move_in_domain_king1 = file_diff<=1 and rank_diff<=1 #one square in every direction
         if move_in_domain_king1:
             special_move = ''
         move_in_domain_king2 = all([move_in_domain_castling, squares_free, squares_not_attacked, king_unmoved, rook_unmoved])#castling
         move_in_domain = any([move_in_domain_king1, move_in_domain_king2])
-
     elif s_piece[1]=='P': #Pawn/Bauer
-        print("PAWN")#!!
         move_in_domain_pawn1 = (rank_diff, file_diff) == (forward, 0) #one square
         move_in_domain_pawn2 = (rank_diff, file_diff, s_rank) == (2*forward, 0, {'w':1, 'b':6}[playercol]) #two squares
-        print(f"MOVE PAWN2 COND {(rank_diff, file_diff, s_rank)} VALUE {(2*forward, 0, {'w':1, 'b':6}[playercol])}")
         move_in_domain_pawn3 = (rank_diff, abs(file_diff)) == (forward, 1) and board[e_rank][e_file]!='xX' #diagonal
         if move_in_domain_pawn1 and e_rank == {'w':7,'b':0}[playercol]:
             special_move = 'conversion'
         elif (rank_diff, abs(file_diff)) == (forward, 1) and history[-1]==(n_to_a[e_file]+str(e_rank+1+forward), n_to_a[e_file]+str(e_rank+1-forward)) and board[e_rank-forward][e_file]=={'w':'bP', 'b':'wP'}[playercol]:
             special_move = 'en_passant'
-        print(" PAWN CHECK 1/2/3:", move_in_domain_pawn1, move_in_domain_pawn2, move_in_domain_pawn3, "EN PASSANT CHECK:", (n_to_a[e_file]+str(e_rank+1+forward), n_to_a[e_file]+str(e_rank+1-forward)) )#!!
         move_in_domain = any([move_in_domain_pawn1, move_in_domain_pawn2, move_in_domain_pawn3, special_move])
         if any([move_in_domain_pawn1, move_in_domain_pawn2]):
             path_available = board[e_rank][e_file]=='xX'
-    print(" MOVE IN DOMAIN:",move_in_domain,"\n PATH AVAILABLE:",path_available)
+
     new_board = deepcopy(board)
     new_board[e_rank][e_file] = s_piece
     new_board[s_rank][s_file] = 'xX'
     if special_move=='en_passant':
-        print(" EN PASSANT CHECK CHECK")
-        board[e_rank-forward][e_file] = 'xX'
-    display_board_single(board=new_board)
+        new_board[e_rank-forward][e_file] = 'xX'
+    king_rank, king_file = find_king(playercol, new_board)
+    not_in_check = not_attacked(playercol, king_rank, king_file, new_board)
 
-    king_rank, king_file = find_king(playercol, board=new_board)
-    print(" KING RANK, FILE:",king_rank, king_file)#!!
-
-    not_in_check = not_attacked(playercol, king_rank, king_file, board=new_board)#!!
-    print(" NOT IN CHECK:",not_in_check)
-
+    print("own_figure, not_blocked_own, move_in_domain, path_available, not_in_check:\n",[own_figure, not_blocked_own, move_in_domain, path_available, not_in_check])#!!
     if all([own_figure, not_blocked_own, move_in_domain, path_available, not_in_check]):
-        print("VALID MOVE")#!!
-        if special_move:
-            return special_move
-        else:
-            return 'valid'
+        return special_move if special_move else 'valid'
     else:
-        print("INVALID MOVE")#!!
         return 'invalid'
 
 """Main Loop"""
@@ -677,18 +651,26 @@ while True:
         except:
             print(lang['language_fail'])
     if ui in ['', 'play', 'spielen', 'spiele']:
-        exit=0#!!
+        exit_game = ''
         while True:
-            display_board()
+            display_board(board)
             playercol = {0:'w',1:'b'}[turn%2]
-            print("\n"+f"{ {'w':lang['white'],'b':lang['black']}[playercol]}{lang['turn']}".center(width))
-            king_rank, king_file = find_king(playercol)
-            if not not_attacked(playercol, king_rank, king_file):
-                print("\n"+f"{ {'w':lang['white'],'b':lang['black']}[playercol]}{lang['check']}".center(width))
+            print("\n"+f"{lang[playercol]}{lang['turn']}".center(width))
+            king_rank, king_file = find_king(playercol, board)
+            if not not_attacked(playercol, king_rank, king_file, board):
+                print("\n"+f"{lang[playercol]}{lang['check']}".center(width))
             while True:
-                #try:
+                try:
                     move_start, move_end, move_force, *rest = input(lang['make_move']).lower().split()+[0,0,0]
-                    if move_start=='exit': break#!!
+                    if move_start in ['resign','aufgeben', 'uufgeh']:
+                        exit_game ='resign'
+                        break
+                    elif move_start in ['draw', 'remis'] and input(lang['draw_query'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]])).lower() in ['yes', 'ja']:
+                        exit_game = 'draw'
+                        break
+                    elif move_start in ['pause']:
+                        exit_game = 'pause'
+                        break
                     s_file, s_rank = a_to_n[move_start[0]], int(move_start[1])-1
                     e_file, e_rank = a_to_n[move_end[0]], int(move_end[1])-1
                     assert all([-1<i<8 for i in [s_file, s_rank, e_file, e_rank]])
@@ -696,9 +678,19 @@ while True:
                     move_type = validate_move(s_rank, s_file, e_rank, e_file, playercol)
                     assert move_type!='invalid' or move_force=='force'
                     break
-                #except:
+                except:
                     continue
-            if move_start=='exit':break#!!
+            if exit_game=='resign':
+                print(lang['resign'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]]).center(width))
+                board = deepcopy(board_template)
+                break
+            elif exit_game=='draw':
+                print(lang['draw'].center(width))
+                board = deepcopy(board_template)
+                break
+            elif exit_game=='pause':
+                print(lang['pause'].center(width))
+                break
             if move_type=='valid':
                 board[e_rank][e_file] = board[s_rank][s_file]
                 board[s_rank][s_file] = 'xX'
@@ -740,7 +732,7 @@ while True:
         # 3-fold repetition
     if ui in ['hello', 'hallo', 'hallihallo', 'hey', 'hei', 'hoi']:
         print("Hi there :)")
-    if ui in ['exit', 'schliessen', 'stop', 'stopp']:
+    if ui in ['exit', 'quit', 'schliessen', 'stop', 'stopp']:
         break
     ui = input(lang['main']).lower()
 
