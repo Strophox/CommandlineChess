@@ -4,7 +4,7 @@
 from time import time
 from threading import Timer
 from copy import deepcopy
-name = "Terminal Chess (alpha) (by Lucas W. 2019)"
+name = "Terminal Chess (v1.0) (by Lucas W. 2019)"
 board_template = [ #standard setup
 ['wR','wN','wB','wQ','wK','wB','wN','wR'],
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
@@ -16,14 +16,14 @@ board_template = [ #standard setup
 ['bR','bN','bB','bQ','bK','bB','bN','bR'],
 ]
 board_temp = [ #temporary setup
-['xX','xX','xX','xX','wK','wB','xX','xX'],
+['xX','xX','xX','xX','xX','xX','xX','bK'],
+['xX','xX','xX','xX','xX','xX','xX','xX'],
+['xX','xX','xX','xX','xX','xX','xX','xX'],
+['xX','xX','xX','xX','xX','wK','wQ','xX'],
 ['xX','xX','xX','xX','xX','xX','xX','xX'],
 ['xX','xX','xX','xX','xX','xX','xX','xX'],
 ['xX','xX','xX','xX','xX','xX','xX','xX'],
 ['xX','xX','xX','xX','xX','xX','xX','xX'],
-['xX','xX','xX','xX','xX','xX','xX','xX'],
-['xX','xX','xX','xX','xX','xX','xX','xX'],
-['xX','xX','bB','xX','bK','xX','xX','xX'],
 ]
 board = deepcopy(board_temp)
 languages = { #UI language
@@ -44,7 +44,8 @@ Type one of the following options to modify:
  - Type 'draw' to propose a draw
  - The game can be paused using 'pause'
  Enjoy playing!""",
-'w':'White', 'b':'Black', 'turn':"'s turn", 'check':" is in check.",
+'w':'White', 'b':'Black', 'turn':"{}'s turn", 'check':"{} is in check.",
+'checkmate':"{}'s king is checkmated. {} wins the game!", 'stalemate':"{} is in stalemate.",
 'draw_query':' {} proposes a draw. Does {} agree? (yes/no) > ', 'resign':"{} resigns. {} wins the game.", 'pause':"The game has been paused.", 'draw':"The game is drawn.",
 'draw_material':"Neither player has sufficient material to mate the other.", 'draw_threefold':"Threefold repetition has occured.", 'draw_50moverule_piece':"No piece has been taken for 50 moves.", 'draw_50moverule_pawn':"No pawn has been moved for 50 moves.",
 'inverted':" Inverted colors.",
@@ -74,7 +75,8 @@ Geben Sie eines der folgenden ein um es zu bearbeiten:
  - 'remis' um ihrem Gegner ein Remis anzubieten
  - Mittels 'pause' kann das spiel pausiert werden
  Viel Spass beim Spielen!""",
-'w':'Weiss', 'b':'Schwarz', 'turn':" ist am Zug.", 'check':" steht im Schach.",
+'w':'Weiss', 'b':'Schwarz', 'turn':"{} ist am Zug.", 'check':"{} steht im Schach.",
+'checkmate':"Der König von {} steht schachmatt. {} gewinnt die Partie!", 'stalemate':"{} steht im Patt.",
 'draw_query':' {} schlägt ein Remis vor. Akzeptiert {}? (ja/nein) > ', 'resign':"{} gibt auf. {} gewinnt die Partie.", 'pause':"Die Partie wurde pausiert.", 'draw':"Die Partie endet in einem Remis.",
 'draw_material':"Keiner der beiden Spieler hat genug Material, um zu gewinnen.", 'draw_threefold':"Dieselbe Position hat sich dreimal wiederholt.", 'draw_50moverule_piece':"Es wurde keine Figur während 50 Zügen geschlagen.", 'draw_50moverule_pawn':"Es wurde kein Bauer während 50 Zügen bewegt.",
 'inverted':" Farben wurden umgekehrt",
@@ -581,8 +583,8 @@ def display_board_single(board): #smallest display of chess board in terminal
     style_used = Ascii
     for rank_num, rank in enumerate(board[::-flip[turn%2]]):
         print(str((8-rank_num if flip[turn%2]==1 else rank_num+1)), end=' ')
-        for square_num, square in enumerate(rank[::flip[turn%2]]):
-            print(style_used[square[0]][square[1]].replace('-', {0:col['l'], 1:col['d']}[(rank_num+square_num)%2] ), end='')
+        for file_num, square in enumerate(rank[::flip[turn%2]]):
+            print(style_used[square[0]][square[1]].replace('-', {0:col['l'], 1:col['d']}[(rank_num+file_num)%2] ), end='')
         print()
     print('\n  '+"abcdefgh"[::flip[turn%2]])
 def display_board(board): # displays board in terminal
@@ -590,9 +592,9 @@ def display_board(board): # displays board in terminal
     for rank_num, rank in enumerate(board[::-flip[turn%2]]):
         for row_num, row in enumerate(style['K']):
             print(' '+str((8-rank_num if flip[turn%2]==1 else rank_num+1)) if row_num==int(len(style['K'])/2) else '  ', end='')
-            print(''.join([style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+square_num)%2])  for square_num, square in enumerate(rank[::flip[turn%2]])]))
-            #for square_num, square in enumerate(rank[::flip[turn%2]]): #old version of the previous line
-            #    print(style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+square_num)%2]), end='')
+            print(''.join([style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+file_num)%2])  for file_num, square in enumerate(rank[::flip[turn%2]])]))
+            #for file_num, square in enumerate(rank[::flip[turn%2]]): #old version of the previous line
+            #    print(style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+file_num)%2]), end='')
             #print()
     print('  '+"{s2}A{s}B{s}C{s}D{s}E{s}F{s}G{s}H{s2}".format(s=(len(style['K'][0])-1)*' ', s2=int((len(style['K'][0])-1)/2)*' ')[::flip[turn%2]])
 def reset(): #reset game (board, time, other statistics)
@@ -651,6 +653,7 @@ def not_attacked(playercol, rank, file, board): #checks, whether a certain squar
             return False
     return True
 def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #checks, whether a given move is legal
+    if not all([-1<i<8 for i in [s_file, s_rank, e_file, e_rank]]): return 'invalid'
     s_piece = board[s_rank][s_file]
     e_piece = board[e_rank][e_file]
     rank_diff = e_rank - s_rank
@@ -736,7 +739,6 @@ def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #
         move_in_domain = any([move_in_domain_pawn1, move_in_domain_pawn2, move_in_domain_pawn3, special_move])
         if any([move_in_domain_pawn1, move_in_domain_pawn2]):
             path_available = board[e_rank][e_file]=='xX'
-
     new_board = deepcopy(board)
     new_board[e_rank][e_file] = s_piece
     new_board[s_rank][s_file] = 'xX'
@@ -744,13 +746,42 @@ def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #
         new_board[e_rank-forward][e_file] = 'xX'
     king_rank, king_file = find_piece(playercol, new_board, 'K')
     not_in_check = not_attacked(playercol, king_rank, king_file, new_board)
-    print("own_figure, not_occupied_own, move_in_domain, path_available, not_in_check:\n",[own_figure, not_occupied_own, move_in_domain, path_available, not_in_check])
+    #print("own_figure, not_occupied_own, move_in_domain, path_available, not_in_check:\n",[own_figure, not_occupied_own, move_in_domain, path_available, not_in_check]) #for debugging
     if all([own_figure, not_occupied_own, move_in_domain, path_available, not_in_check]):
         return special_move if special_move else 'valid'
     else:
         return 'invalid'
-def can_make_move(playercol, board):#!!
-    pass
+def can_make_move(playercol, board): #whether a player can make a move (at all)
+    for rank_num, rank in enumerate(board):
+        for file_num, square in enumerate(rank):
+            if square[0]!=playercol: continue
+            if square[1] in 'RQ':
+                steps = 1
+                for x,y in ((0,1), (0,-1), (1,0), (-1,0)):
+                    while -1<rank_num+x*steps<8 and -1<file_num+y*steps<8:
+                        if validate_move(rank_num, file_num, rank_num+x*steps, file_num+y*steps, playercol)!='invalid':
+                            return True
+                        steps += 1
+            if square[1] in 'BQ':
+                steps = 1
+                for x,y in ((1,1), (1,-1), (-1,1), (-1,-1)):
+                    while -1<rank_num+x*steps<8 and -1<file_num+y*steps<8:
+                        if validate_move(rank_num, file_num, rank_num+x*steps, file_num+y*steps, playercol)!='invalid':
+                            return True
+                        steps += 1
+            elif square[1]=='K':
+                for x,y in ((0,0), (0,1), (0,-1), (1,0), (1,1), (1,-1), (-1,0), (-1,1), (-1,-1)):
+                    if validate_move(rank_num, file_num, rank_num+x, file_num+y, playercol)!='invalid':
+                        return True
+            elif square[1]=='N':
+                for x,y in ((1,2), (1,-2), (2,1), (2,-1), (-1,2), (-1,-2), (-2,1), (-2,-1)):
+                    if validate_move(rank_num, file_num, rank_num+x, file_num+y, playercol)!='invalid':
+                        return True
+            elif square[1]=='P':
+                for x,y in ((1,0), (1,1), (1,-1), (2,0)):
+                    if validate_move(rank_num, file_num, rank_num+x, file_num+y, playercol)!='invalid':
+                        return True
+    return False
 
 """Main Loop"""
 ui = 'none'
@@ -794,17 +825,26 @@ while True:
         while True: #playerturns
             playercol = {0:'w',1:'b'}[turn%2] #whose turn it is
             display_board(board) #main display
-            print("\n"+f"{lang[playercol]}{lang['turn']}".center(width))
+            print("\n"+lang['turn'].format(lang[playercol]).center(width))
             if time_s: #how much time is left, starting timer
                 print(lang['time_left'].format(lang[playercol], times[playercol]).center(width))
                 time_start = time()
                 time_limit = Timer(times[playercol], time_up_toggle)
                 time_limit.start()
             king_rank, king_file = find_piece(playercol, board, 'K')
-            if not not_attacked(playercol, *find_piece(playercol, board, 'K'), board): #Whether a player is in check
-                print("\n"+f"{lang[playercol]}{lang['check']}".center(width))
+            king_not_in_check = not_attacked(playercol, *find_piece(playercol, board, 'K'), board)
+            if not can_make_move(playercol, board): #no legal move available
+                if king_not_in_check: #king not in check -> stalemate
+                    print(lang['stalemate'].format(lang[playercol]).center(width))
+                    print(lang['draw'].center(width))
+                else: #king in check -> checkmate
+                    print(lang['checkmate'].format(lang[playercol],lang[{'w':'b','b':'w'}[playercol]]).center(width))
+                reset()
+                break
+            if not king_not_in_check: #player is in check
+                print("\n"+lang['check'].format(lang[playercol]).center(width))
             while True: #loops until a valid move is entered by the user
-                #try:
+                try:
                     move_start, move_end, move_force, *rest = input(lang['make_move']).lower().split()+[0,0,0]
                     if time_up:
                         break
@@ -819,11 +859,10 @@ while True:
                         break
                     s_file, s_rank = a_to_n[move_start[0]], int(move_start[1])-1
                     e_file, e_rank = a_to_n[move_end[0]], int(move_end[1])-1
-                    assert all([-1<i<8 for i in [s_file, s_rank, e_file, e_rank]]) #on the board
                     move_type = validate_move(s_rank, s_file, e_rank, e_file, playercol) #valid move?
                     assert move_type!='invalid' or move_force=='force'
                     break
-                #except:
+                except:
                     continue
             if time_s: #subtract time from player clock
                 time_limit.cancel()
@@ -916,10 +955,9 @@ while True:
         break
     ui = input(lang['main']).lower() #main menu user input
 #Dekoratives
-    # Piece/Point Display
+    # (Piece / Point Display?)
 #Praktisches
-    # Checkmate
-    # Draw: Stalemate (Patt)
+    # - - -
 #Mögliche Zukunftspläne
     # Fischerandom/960 chess
     # Undo
