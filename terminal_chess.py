@@ -32,11 +32,12 @@ languages = { #UI language
 'main':"\n What do you want to do? play/settings/quit > ",
 'settings':"""
 Type one of the following options to modify:
-- 'invert': invert the colors of the board
+- 'time': change time limit per player
 - 'size': choose size of pieces and board
-- 'flip': whether the board flips after each player's turn
+- 'color': choose an appropriate color palette
+- 'invert': invert the palettes under 'color'
 - 'language': change interface language
-- 'time': change time limit per player""",
+- 'flip': whether the board flips after each player's turn""",
 'play':"""
  How to play:
  - Type '<start> <end>' to make a move (e.g. 'e2 e4')
@@ -48,26 +49,26 @@ Type one of the following options to modify:
 'checkmate':"{}'s king is checkmated. {} wins the game!", 'stalemate':"{} is in stalemate.",
 'draw_query':' {} proposes a draw. Does {} agree? (yes/no) > ', 'resign':"{} resigns. {} wins the game.", 'pause':"The game has been paused.", 'draw':"The game is drawn.",
 'draw_material':"Neither player has sufficient material to mate the other.", 'draw_threefold':"Threefold repetition has occured.", 'draw_50moverule_piece':"No piece has been taken for 50 moves.", 'draw_50moverule_pawn':"No pawn has been moved for 50 moves.",
-'inverted':" Inverted colors.",
-'sizes':" The following sizes are available:", 'size_success':" Successfully changed size.\n", 'size_fail':" That size wasn't found!",
-'flip_on':" The board will now flip after each player's turn.", 'flip_off':" The board stops flipping.",
+'color_query':" The LEFTMOST icon should always appear as a BLACK KING on a DARK SQUARE\n (Should it instead appear as a white king on a light square, invert the colors using --> 'invert')\n Insert name of desired color palette > ", 'color_success':" Color palette was changed.", 'color_fail':" Such a palette doesn't exist.",
+'sizes':" The following sizes are available (square rasterized fonts are recommended for optimal display):", 'size_success':" Successfully changed size.\n", 'size_fail':" That size wasn't found!",
+'flip_on':" The board will now flip after each player's turn.", 'flip_off':" The board stops flipping.", 'inverted':" The colors have been inverted, see changes under --> 'color'",
 'language':" Choose one of the following languages:", 'language_fail':" That language doesn't exist.", 'language_success':" Language successfully changed.",
 'time_query':" How much time (sec.) should one player have? (0 for infinite, current: {}) > ", 'time_success':" Time per player was set to {}s.", 'time_fail':" Time was not updated.",
 'time_up':"{} ran out of time. {} wins the game.", 'time_left':"{} has {:.1f} seconds left on his clock.",
-'make_move':" Make a move ¦ ",
-'conversion':" To what piece do you want to promote your pawn? (Queen/Rook/Bishop/Knight) >",
-'invalid_move':"Invalid Move!",
+'make_move':" Make a move ¦ ", 'invalid_move':"Invalid Move!",
+'conversion':" To what piece do you want to promote your pawn? (Queen/Rook/Bishop/Knight) >"
 },
 'deutsch':{
 'welcome':" Willkommen!",
-'main':"\n Was wollen Sie machen? spielen/einstellungen/schliessen > ",
+'main':"\n Was wollen Sie machen? Spielen/Einstellungen/Schliessen > ",
 'settings':"""
 Geben Sie eines der folgenden ein um es zu bearbeiten:
-- 'umkehren': Kehren Sie die dargestellten Farben um
-- 'grösse': Wählen Sie, wie gross die Figuren und das Brett sein sollen
-- 'drehen': Ob das Brett nach jedem Zug sich entsprechend dreht
-- 'sprache': Sprache ändern
-- 'zeit': Zeitlimit pro Spieler einstellen""",
+- 'Zeit': Zeitlimit pro Spieler einstellen
+- 'Grösse': Wählen Sie, wie gross die Figuren und das Brett sein sollen
+- 'Farbe': Wählen Sie die passenden Farben für das Schachbrett
+- 'umkehren': Kehren Sie die Farben um, sollten die Paletten unter 'Farbe' nicht stimmen
+- 'Sprache': Sprache ändern
+- 'Drehen': Ob das Brett nach jedem Zug sich entsprechend dreht""",
 'play':"""
  Wie man spielt:
  - Schreiben Sie '<start> <end>' um zu ziehen (z.B. 'e2 e4')
@@ -79,18 +80,17 @@ Geben Sie eines der folgenden ein um es zu bearbeiten:
 'checkmate':"Der König von {} steht schachmatt. {} gewinnt die Partie!", 'stalemate':"{} steht im Patt.",
 'draw_query':' {} schlägt ein Remis vor. Akzeptiert {}? (ja/nein) > ', 'resign':"{} gibt auf. {} gewinnt die Partie.", 'pause':"Die Partie wurde pausiert.", 'draw':"Die Partie endet in einem Remis.",
 'draw_material':"Keiner der beiden Spieler hat genug Material, um zu gewinnen.", 'draw_threefold':"Dieselbe Position hat sich dreimal wiederholt.", 'draw_50moverule_piece':"Es wurde keine Figur während 50 Zügen geschlagen.", 'draw_50moverule_pawn':"Es wurde kein Bauer während 50 Zügen bewegt.",
-'inverted':" Farben wurden umgekehrt",
-'sizes':" Wählen Sie eine der folgenden Grössen:", 'size_success':" Die Grösse wurde erfolgreich aktualisiert\n", 'size_fail':" Die eingegebene Grösse existiert nicht!",
-'flip_on':" Das Brett dreht sich nach jedem Zug dem entsprechenden Spieler.", 'flip_off':" Das Brett dreht sich nicht mehr.",
+'color_query':" Die linke Ikone sollte als einen SCHWARZEN KÖNIG auf einem DUNKELN FELD erscheinen.\n (Sollte es stattdessen als weisser König auf hellem Feld erscheinen, kehren sie die Farben um mittels --> 'umkehren') \n Geben Sie den Namen der gewünschten Palette ein > ", 'color_success':" Farbeinstellungen wurden angepasst.", 'color_fail':" Eine solche Farbpalette existiert nicht.",
+'sizes':" Wählen Sie eine der folgenden Grössen (quadratische Rasterschriftarten sind für optimale Darstellung empfohlen):", 'size_success':" Die Grösse wurde erfolgreich aktualisiert\n", 'size_fail':" Die eingegebene Grösse existiert nicht!",
+'flip_on':" Das Brett dreht sich nach jedem Zug dem entsprechenden Spieler.", 'flip_off':" Das Brett dreht sich nicht mehr.", 'inverted':" Die Farben wurden umgekehrt, siehe -> 'Farbe'",
 'language':" Die folgenden Sprachen stehen zur Verfügung:", 'language_fail':" Die gewünschte Sprache wurde nicht gefunden.", 'language_success':" Sprache erfolgreich geändert.",
 'time_query':" Wieviel Zeit (Sek.) sollte jeder Spieler haben? (0 für Unendlich, bisher: {}) > ", 'time_success':" Zeitlimit wurde auf {}s pro Spieler gesetzt.", 'time_fail':" Zeitlimit wurde nicht geändert.",
 'time_up':"{} hat das Zeitlimit erreicht. {} gewinnt die Partie.", 'time_left':"{} hat {:.1f} Sekunden übrig.",
-'make_move':" Machen Sie einen Zug ¦ ",
-'conversion':" In welche Figur wollen Sie Ihren Bauern umwandeln? (Dame/Turm/Läufer/Springer) >",
-'invalid_move':"Ungültiger Zug!"
+'make_move':" Machen Sie einen Zug ¦ ", 'invalid_move':"Ungültiger Zug!",
+'conversion':" In welche Figur wollen Sie Ihren Bauern umwandeln? (Dame/Turm/Läufer/Springer) >"
 },
 }
-lang = languages['english'] #lang used
+lang = languages['deutsch'] #lang used
 styles = { #board styles
 '2x2':{
 'K':(
@@ -303,6 +303,71 @@ styles = { #board styles
 '-------',
 )
 },
+'10x5':{
+'K':(
+'--------------',
+'------XX------',
+'---XXX--XXX---',
+'--XX--XX--XX--',
+'---XX-XX-XX---',
+'----XXXXXX----',
+'--------------',
+),
+'Q':(
+'--------------',
+'-----X--X-----',
+'--X--X--X--X--',
+'--XX-XXXX-XX--',
+'---XX-XX-XX---',
+'----XXXXXX----',
+'--------------',
+),
+'R':(
+'--------------',
+'---X--XX--X---',
+'---XXXXXXXX---',
+'----XXXXXX----',
+'----XXXXXX----',
+'---XXXXXXXX---',
+'--------------',
+),
+'B':(
+'--------------',
+'------XX------',
+'-----XX-X-----',
+'----XX-XXX----',
+'------XX------',
+'--XXXX--XXXX--',
+'--------------',
+),
+'N':(
+'--------------',
+'-----XXXXX-X--',
+'---XXXXXXXX---',
+'-------XXX----',
+'-----XXXX-----',
+'---XXXXXXXX---',
+'--------------',
+),
+'P':(
+'--------------',
+'--------------',
+'------XX------',
+'-----XXXX-----',
+'------XX------',
+'----XXXXXX----',
+'--------------',
+),
+'X':(
+'--------------',
+'--------------',
+'--------------',
+'--------------',
+'--------------',
+'--------------',
+'--------------',
+)
+},
 '7x7':{
 'K':(
 '---------',
@@ -382,7 +447,7 @@ styles = { #board styles
 '---------',
 )
 },
-'7x7 double':{
+'14x7':{
 'K':(
 '------------------',
 '--------XX--------',
@@ -556,8 +621,25 @@ styles = { #board styles
 },
 }
 style = styles['5x5'] #style used
-width = 8*len(style['K'])+2 #board width
-col = {'w':'░', 'b':'█', 'd':'▓', 'l':'▒', 'x':' '} #white/black/dark/light/transparent(space)
+width = 8*len(style['K'][0])+2 #board width
+col_palettes = {
+0:{ #for dark terminals with light glyphs
+'darker':{'w':'▓', 'b':' ', 'd':'░', 'l':'▒', 'x':' '},
+'dark':{'w':'█', 'b':' ', 'd':'░', 'l':'▒', 'x':' '},
+'contrast':{'w':'█', 'b':' ', 'd':'░', 'l':'▓', 'x':' '},
+'light':{'w':'█', 'b':' ', 'd':'▒', 'l':'▓', 'x':' '},
+'lighter':{'w':'█', 'b':'░', 'd':'▒', 'l':'▓', 'x':' '},
+},
+1:{ #for light terminals with dark glyphs
+'lighter':{'w':' ', 'b':'▓', 'd':'▒', 'l':'░', 'x':' '},
+'light':{'w':' ', 'b':'█', 'd':'▒', 'l':'░', 'x':' '},
+'contrast':{'w':' ', 'b':'█', 'd':'▓', 'l':'░', 'x':' '},
+'dark':{'w':' ', 'b':'█', 'd':'▓', 'l':'▒', 'x':' '},
+'darker':{'w':'░', 'b':'█', 'd':'▓', 'l':'▒', 'x':' '},
+}
+}
+palette_type = 0
+col = col_palettes[palette_type]['lighter'] #white/black/dark/light/transparent(space)
 flip = {0:1,1:-1} #flip after each turn
 history = [] #recorded moves
 board_history = [] #recorded positions
@@ -592,13 +674,17 @@ def display_board(board): # displays board in terminal
     for rank_num, rank in enumerate(board[::-flip[turn%2]]):
         for row_num, row in enumerate(style['K']):
             print(' '+str((8-rank_num if flip[turn%2]==1 else rank_num+1)) if row_num==int(len(style['K'])/2) else '  ', end='')
-            print(''.join([style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+file_num)%2])  for file_num, square in enumerate(rank[::flip[turn%2]])]))
+            print(''.join([style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+file_num)%2]) for file_num, square in enumerate(rank[::flip[turn%2]])]))
             #for file_num, square in enumerate(rank[::flip[turn%2]]): #old version of the previous line
             #    print(style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+file_num)%2]), end='')
             #print()
     print('  '+"{s2}A{s}B{s}C{s}D{s}E{s}F{s}G{s}H{s2}".format(s=(len(style['K'][0])-1)*' ', s2=int((len(style['K'][0])-1)/2)*' ')[::flip[turn%2]])
+def display_any(board, style, col):
+    for rank_num, rank in enumerate(board[::-1]):
+        for row_num, row in enumerate(style['K']):
+            print(''.join([style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {1:col['l'], 0:col['d']}[(rank_num+file_num)%2]) for file_num, square in enumerate(rank)]).center(width))
 def reset(): #reset game (board, time, other statistics)
-    global board, board_history, history, times, piece_taken, pawn_moved, turn
+    global board, board_history, history, time_up, times, piece_taken, pawn_moved, turn
     board = deepcopy(board_template)
     board_history = []
     history = []
@@ -789,13 +875,22 @@ print("\n", name.center(width), "\n", (len(name)*"-").center(width), "\n")
 while True:
     if ui in ['settings', 'e', 'einstellungen']: #settings
         print(lang['settings'])
-    elif ui in ['invert', 'i', 'umkehren']: #color inversion
-        col['w'], col['l'], col['d'], col['b'] = col['b'], col['d'], col['l'], col['w']
+    elif ui in ['color','c','colour','farbe']:
+        for palette in col_palettes[palette_type]:
+            print("\n", palette.center(width))
+            display_any([['bK','bB','wP','wQ']], style, col_palettes[palette_type][palette])
+        try:
+            col = col_palettes[palette_type][input(lang['color_query']).lower()].copy()
+            print(lang['color_success'])
+        except:
+            print(lang['color_fail'])
+    elif ui in ['invert', 'i', 'umkehren']:
+        palette_type ^= 1
         print(lang['inverted'])
     elif ui in ['size', 's', 'grösse']: #size options
         try:
             style = styles[input(f" {lang['sizes']}\n {' / '.join([i for i in styles])} > ").lower()]
-            width = 8*len(style['K'])+2
+            width = 8*len(style['K'][0])+2
             print(lang['size_success'])
         except:
             print(lang['size_fail'])
@@ -848,13 +943,13 @@ while True:
                     move_start, move_end, move_force, *rest = input(lang['make_move']).lower().split()+[0,0,0]
                     if time_up:
                         break
-                    if move_start in ['resign','aufgeben']: #resigning
+                    if move_start in ['resign', 'r','aufgeben']: #resigning
                         exit_game ='resign'
                         break
-                    elif move_start in ['draw', 'remis'] and input(lang['draw_query'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]])).lower() in ['yes', 'ja']: #agreed draw
+                    elif move_start in ['draw', 'd', 'remis'] and input(lang['draw_query'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]])).lower() in ['yes', 'ja']: #agreed draw
                         exit_game = 'draw'
                         break
-                    elif move_start in ['pause']: #pausing game
+                    elif move_start in ['pause', 'p']: #pausing game
                         exit_game = 'pause'
                         break
                     s_file, s_rank = a_to_n[move_start[0]], int(move_start[1])-1
