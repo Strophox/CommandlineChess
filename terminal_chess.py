@@ -25,7 +25,7 @@ board_temp = [ #temporary setup
 ['xX','xX','xX','xX','xX','xX','xX','xX'],
 ['xX','xX','xX','xX','xX','xX','xX','xX'],
 ]
-board = deepcopy(board_temp)
+board = deepcopy(board_template)
 languages = { #UI language
 'english':{
 'welcome':" Welcome <user>!",
