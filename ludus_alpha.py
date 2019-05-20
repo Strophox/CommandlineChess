@@ -2,8 +2,10 @@
 # Written by Lucas W. in Python 3.7.0
 """Initialisation"""
 from time import time
+from threading import Timer
 from copy import deepcopy
-board_template = [
+name = "Terminal Chess (alpha) (by Lucas W. 2019)"
+board_template = [ #standard setup
 ['wR','wN','wB','wQ','wK','wB','wN','wR'],
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
 ['xX','xX','xX','xX','xX','xX','xX','xX'],
@@ -13,28 +15,50 @@ board_template = [
 ['bP','bP','bP','bP','bP','bP','bP','bP'],
 ['bR','bN','bB','bQ','bK','bB','bN','bR'],
 ]
-board = deepcopy(board_template)
-languages = {
+board_temp = [ #temporary setup
+['xX','xX','xX','xX','wK','wB','xX','xX'],
+['xX','xX','xX','xX','xX','xX','xX','xX'],
+['xX','xX','xX','xX','xX','xX','xX','xX'],
+['xX','xX','xX','xX','xX','xX','xX','xX'],
+['xX','xX','xX','xX','xX','xX','xX','xX'],
+['xX','xX','xX','xX','xX','xX','xX','xX'],
+['xX','xX','xX','xX','xX','xX','xX','xX'],
+['xX','xX','bB','xX','bK','xX','xX','xX'],
+]
+board = deepcopy(board_temp)
+languages = { #UI language
 'english':{
-'main':"\n What do you want to do? play/settings/exit > ",
+'welcome':" Welcome <user>!",
+'main':"\n What do you want to do? play/settings/quit > ",
 'settings':"""
 Type one of the following options to modify:
 - 'invert': invert the colors of the board
 - 'size': choose size of pieces and board
 - 'flip': whether the board flips after each player's turn
 - 'language': change interface language
-""",
+- 'time': change time limit per player""",
+'play':"""
+ How to play:
+ - Type '<start> <end>' to make a move (e.g. 'e2 e4')
+ - Type 'resign' to resign
+ - Type 'draw' to propose a draw
+ - The game can be paused using 'pause'
+ Enjoy playing!""",
 'w':'White', 'b':'Black', 'turn':"'s turn", 'check':" is in check.",
-'draw_query':'{} proposes a draw. Does {} agree? (yes/no)', 'resign':"{} resigns. {} wins the game.", 'draw':"The game is drawn.", 'pause':"The game has been paused.",
+'draw_query':' {} proposes a draw. Does {} agree? (yes/no) > ', 'resign':"{} resigns. {} wins the game.", 'pause':"The game has been paused.", 'draw':"The game is drawn.",
+'draw_material':"Neither player has sufficient material to mate the other.", 'draw_threefold':"Threefold repetition has occured.", 'draw_50moverule_piece':"No piece has been taken for 50 moves.", 'draw_50moverule_pawn':"No pawn has been moved for 50 moves.",
 'inverted':" Inverted colors.",
-'sizes':"The following sizes are available:", 'size_success':" Successfully changed size.\n", 'size_fail':" That size wasn't found!",
+'sizes':" The following sizes are available:", 'size_success':" Successfully changed size.\n", 'size_fail':" That size wasn't found!",
 'flip_on':" The board will now flip after each player's turn.", 'flip_off':" The board stops flipping.",
-'language':"Choose one of the following languages:", 'language_fail':"That language doesn't exist (yet?)", 'language_success':"Language successfully changed.",
+'language':" Choose one of the following languages:", 'language_fail':" That language doesn't exist.", 'language_success':" Language successfully changed.",
+'time_query':" How much time (sec.) should one player have? (0 for infinite, current: {}) > ", 'time_success':" Time per player was set to {}s.", 'time_fail':" Time was not updated.",
+'time_up':"{} ran out of time. {} wins the game.", 'time_left':"{} has {:.1f} seconds left on his clock.",
 'make_move':" Make a move ¦ ",
 'conversion':" To what piece do you want to promote your pawn? (Queen/Rook/Bishop/Knight) >",
 'invalid_move':"Invalid Move!",
 },
 'deutsch':{
+'welcome':" Willkommen!",
 'main':"\n Was wollen Sie machen? spielen/einstellungen/schliessen > ",
 'settings':"""
 Geben Sie eines der folgenden ein um es zu bearbeiten:
@@ -42,20 +66,74 @@ Geben Sie eines der folgenden ein um es zu bearbeiten:
 - 'grösse': Wählen Sie, wie gross die Figuren und das Brett sein sollen
 - 'drehen': Ob das Brett nach jedem Zug sich entsprechend dreht
 - 'sprache': Sprache ändern
-""",
+- 'zeit': Zeitlimit pro Spieler einstellen""",
+'play':"""
+ Wie man spielt:
+ - Schreiben Sie '<start> <end>' um zu ziehen (z.B. 'e2 e4')
+ - 'aufgeben' um aufzugeben
+ - 'remis' um ihrem Gegner ein Remis anzubieten
+ - Mittels 'pause' kann das spiel pausiert werden
+ Viel Spass beim Spielen!""",
 'w':'Weiss', 'b':'Schwarz', 'turn':" ist am Zug.", 'check':" steht im Schach.",
-'draw_query':'{} schlägt ein Remis vor. Akzeptiert {}? (ja/nein)', 'resign':"{} gibt auf. {} gewinnt die Partie.", 'draw':"Die Partie endet in einem Remis.", 'pause':"Die Partie wurde pausiert.",
+'draw_query':' {} schlägt ein Remis vor. Akzeptiert {}? (ja/nein) > ', 'resign':"{} gibt auf. {} gewinnt die Partie.", 'pause':"Die Partie wurde pausiert.", 'draw':"Die Partie endet in einem Remis.",
+'draw_material':"Keiner der beiden Spieler hat genug Material, um zu gewinnen.", 'draw_threefold':"Dieselbe Position hat sich dreimal wiederholt.", 'draw_50moverule_piece':"Es wurde keine Figur während 50 Zügen geschlagen.", 'draw_50moverule_pawn':"Es wurde kein Bauer während 50 Zügen bewegt.",
 'inverted':" Farben wurden umgekehrt",
-'sizes':"Wählen Sie eine der folgenden Grössen:", 'size_success':" Die Grösse wurde erfolgreich aktualisiert\n", 'size_fail':" Die eingegebene Grösse existiert nicht!",
+'sizes':" Wählen Sie eine der folgenden Grössen:", 'size_success':" Die Grösse wurde erfolgreich aktualisiert\n", 'size_fail':" Die eingegebene Grösse existiert nicht!",
 'flip_on':" Das Brett dreht sich nach jedem Zug dem entsprechenden Spieler.", 'flip_off':" Das Brett dreht sich nicht mehr.",
-'language':"Die folgenden Sprachen stehen zur Verfügung:", 'language_fail':"Die gewünschte Sprache wurde nicht gefunden.", 'language_success':"Sprache erfolgreich geändert.",
+'language':" Die folgenden Sprachen stehen zur Verfügung:", 'language_fail':" Die gewünschte Sprache wurde nicht gefunden.", 'language_success':" Sprache erfolgreich geändert.",
+'time_query':" Wieviel Zeit (Sek.) sollte jeder Spieler haben? (0 für Unendlich, bisher: {}) > ", 'time_success':" Zeitlimit wurde auf {}s pro Spieler gesetzt.", 'time_fail':" Zeitlimit wurde nicht geändert.",
+'time_up':"{} hat das Zeitlimit erreicht. {} gewinnt die Partie.", 'time_left':"{} hat {:.1f} Sekunden übrig.",
 'make_move':" Machen Sie einen Zug ¦ ",
 'conversion':" In welche Figur wollen Sie Ihren Bauern umwandeln? (Dame/Turm/Läufer/Springer) >",
 'invalid_move':"Ungültiger Zug!"
 },
 }
-lang = languages['english']
-styles = {
+lang = languages['english'] #lang used
+styles = { #board styles
+'2x2':{
+'K':(
+'----',
+'-XX-',
+'-XX-',
+'----'
+),
+'Q':(
+'----',
+'-X--',
+'-XX-',
+'----'
+),
+'R':(
+'----',
+'-X--',
+'-X--',
+'----'
+),
+'B':(
+'----',
+'-X--',
+'--X-',
+'----'
+),
+'N':(
+'----',
+'-XX-',
+'--X-',
+'----'
+),
+'P':(
+'----',
+'----',
+'-X--',
+'----'
+),
+'X':(
+'----',
+'----',
+'----',
+'----'
+),
+},
 '3x3':{
 'K':(
 '-----',
@@ -73,8 +151,8 @@ styles = {
 ),
 'R':(
 '-----',
-'-----',
 '-X-X-',
+'-XXX-',
 '-XXX-',
 '-----'
 ),
@@ -97,6 +175,57 @@ styles = {
 '-----',
 '--X--',
 '-XXX-',
+'-----'
+),
+'X':(
+'-----',
+'-----',
+'-----',
+'-----',
+'-----'
+)
+},
+'3x3 bauhaus':{
+'K':(
+'-----',
+'-XXX-',
+'-XXX-',
+'-XXX-',
+'-----'
+),
+'Q':(
+'-----',
+'--X--',
+'-XXX-',
+'-XXX-',
+'-----'
+),
+'R':(
+'-----',
+'-X-X-',
+'-XXX-',
+'-XXX-',
+'-----'
+),
+'B':(
+'-----',
+'-X-X-',
+'--X--',
+'-X-X-',
+'-----'
+),
+'N':(
+'-----',
+'-XX--',
+'-XXX-',
+'--XX-',
+'-----'
+),
+'P':(
+'-----',
+'-----',
+'-XX--',
+'-XX--',
 '-----'
 ),
 'X':(
@@ -219,10 +348,10 @@ styles = {
 ),
 'N':(
 '---------',
-'-----X---',
-'---XXX---',
-'--XXXXX--',
-'--XX-XX--',
+'---XX-X--',
+'--XXXX---',
+'-XXXXXX--',
+'--X--XX--',
 '----XXX--',
 '---XXX---',
 '--XXXXX--',
@@ -249,6 +378,85 @@ styles = {
 '---------',
 '---------',
 '---------',
+)
+},
+'7x7 double':{
+'K':(
+'------------------',
+'--------XX--------',
+'---XXX--XX--XXX---',
+'--XX--XXXXXX--XX--',
+'--XX----XX----XX--',
+'---XXXXXXXXXXXX---',
+'-----XXXXXXXX-----',
+'---XXXXXXXXXXXX---',
+'------------------',
+),
+'Q':(
+'------------------',
+'------X----X------',
+'-XX---XX--XX---XX-',
+'--XX--XXXXXX--XX--',
+'---XXXXX--XXXXX---',
+'----XXXXXXXXXX----',
+'-----XXXXXXXX-----',
+'---XXXXXXXXXXXX---',
+'------------------',
+),
+'R':(
+'------------------',
+'----XX--XX--XX----',
+'----XXXXXXXXXX----',
+'-----XXXXXXXX-----',
+'------XXXXXX------',
+'-----XXXXXXXX-----',
+'----XXXXXXXXXX----',
+'----XXXXXXXXXX----',
+'------------------',
+),
+'B':(
+'------------------',
+'-------XXXX-------',
+'-----XXX--XXX-----',
+'----XX------XX----',
+'-----XXX--XXX-----',
+'-------XXXX-------',
+'-----XXX--XXX-----',
+'--XXXX------XXXX--',
+'------------------',
+),
+'N':(
+'------------------',
+'-------XXXX-XX----',
+'----XXXXX-XXX-----',
+'--XXXXXXXXXXXX----',
+'---XXX---XXXXX----',
+'-------XXXXXX-----',
+'-----XXXXXXX------',
+'----XXXXXXXXXX----',
+'------------------',
+),
+'P':(
+'------------------',
+'------------------',
+'--------XX--------',
+'-------XXXX-------',
+'------XXXXXX------',
+'-------XXXX-------',
+'------XXXXXX------',
+'----XXXXXXXXXX----',
+'------------------',
+),
+'X':(
+'------------------',
+'------------------',
+'------------------',
+'------------------',
+'------------------',
+'------------------',
+'------------------',
+'------------------',
+'------------------',
 )
 },
 '9x9':{
@@ -344,107 +552,20 @@ styles = {
 '-----------',
 ),
 },
-'9x9_alt':{
-'K':(
-'-----------',
-'---X-X-X---',
-'--X-XXX-X--',
-'--X--X--X--',
-'---XXXXX---',
-'----XXX----',
-'----XXX----',
-'---XXXXX---',
-'---XXXXX---',
-'--XXXXXXX--',
-'-----------',
-),
-'Q':(
-'-----------',
-'---X-X-X---',
-'----XXX----',
-'---XXXXX---',
-'----XXX----',
-'----XXX----',
-'----XXX----',
-'---XXXXX---',
-'---XXXXX---',
-'--XXXXXXX--',
-'-----------',
-),
-'R':(
-'-----------',
-'-----------',
-'---X-X-X---',
-'---XXXXX---',
-'---XXXXX---',
-'----XXX----',
-'----XXX----',
-'---XXXXX---',
-'---XXXXX---',
-'---XXXXX---',
-'-----------',
-),
-'B':(
-'-----------',
-'-----X-----',
-'----X-X----',
-'----X-X----',
-'----XXX----',
-'-----X-----',
-'----XXX----',
-'----XXX----',
-'---XXXXX---',
-'---XXXXX---',
-'-----------',
-),
-'N':(
-'-----------',
-'------X----',
-'----XXXX---',
-'---XXXXXX--',
-'--XXX-XXX--',
-'---X--XXX--',
-'-----XXX---',
-'----XXX----',
-'---XXXXX---',
-'---XXXXX---',
-'-----------',
-),
-'P':(
-'-----------',
-'-----------',
-'-----------',
-'-----------',
-'-----X-----',
-'----XXX----',
-'----XXX----',
-'-----X-----',
-'----XXX----',
-'---XXXXX---',
-'-----------',
-),
-'X':(
-'-----------',
-'-----------',
-'-----------',
-'-----------',
-'-----------',
-'-----------',
-'-----------',
-'-----------',
-'-----------',
-'-----------',
-'-----------',
-),
 }
-}
-style = styles['5x5']
-width = 8*len(style['K'])+2
+style = styles['5x5'] #style used
+width = 8*len(style['K'])+2 #board width
 col = {'w':'░', 'b':'█', 'd':'▓', 'l':'▒', 'x':' '} #white/black/dark/light/transparent(space)
-flip = {0:1,1:-1}
-history = []
-turn = 0
-s_rank, s_file, e_rank, e_file = 0, 0, 0, 0
+flip = {0:1,1:-1} #flip after each turn
+history = [] #recorded moves
+board_history = [] #recorded positions
+turn = 0 #turn number
+time_s = 0 #standard time
+times = {'w':time_s, 'b':time_s} #individual times
+time_up = False
+piece_taken = 0 #how many moves since <>
+pawn_moved = 0 #how many moves since <>
+s_rank, s_file, e_rank, e_file = 0, 0, 0, 0 #start rank/file, end rank/file
 a_to_n = dict(zip('abcdefgh', range(8))) #convert file letters to numbers
 n_to_a = dict(zip(range(8), 'abcdefgh')) #convert numbers to file letters
 
@@ -469,16 +590,32 @@ def display_board(board): # displays board in terminal
     for rank_num, rank in enumerate(board[::-flip[turn%2]]):
         for row_num, row in enumerate(style['K']):
             print(' '+str((8-rank_num if flip[turn%2]==1 else rank_num+1)) if row_num==int(len(style['K'])/2) else '  ', end='')
-            for square_num, square in enumerate(rank[::flip[turn%2]]):
-                print(style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+square_num)%2]), end='')
-                #print(style[square[1]][row_num].replace('l', col[{'w':'b','b':'w', 'x':'x'}[square[0]]]).replace('X', col[square[0]]).replace('-', {0:col['w'], 1:col['b']}[(rank_num+square_num)%2]), end='')
-            print()
-    print('  '+"{s2}A{s}B{s}C{s}D{s}E{s}F{s}G{s}H{s2}".format(s=(len(style['K'])-1)*' ', s2=int((len(style['K'])-1)/2)*' ')[::flip[turn%2]])
-def find_king(color, board): #finds the king of a specific player on the board
+            print(''.join([style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+square_num)%2])  for square_num, square in enumerate(rank[::flip[turn%2]])]))
+            #for square_num, square in enumerate(rank[::flip[turn%2]]): #old version of the previous line
+            #    print(style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+square_num)%2]), end='')
+            #print()
+    print('  '+"{s2}A{s}B{s}C{s}D{s}E{s}F{s}G{s}H{s2}".format(s=(len(style['K'][0])-1)*' ', s2=int((len(style['K'][0])-1)/2)*' ')[::flip[turn%2]])
+def reset(): #reset game (board, time, other statistics)
+    global board, board_history, history, times, piece_taken, pawn_moved, turn
+    board = deepcopy(board_template)
+    board_history = []
+    history = []
+    time_up = False
+    times = {'w':time_s, 'b':time_s}
+    piece_taken = 0
+    pawn_moved = 0
+    turn = 0
+def time_up_toggle(): #change global time_up
+    print("Time is up.")
+    global time_up
+    time_up = True
+def find_piece(color, board, piece_type, depth=1): #finds the king of a specific player on the board
     for rank_num, rank in enumerate(board):
         for file_num, square in enumerate(rank):
             if square==color+'K':
-                return rank_num, file_num
+                depth -= 1
+                if not depth:
+                    return rank_num, file_num
     return (-1,-1)
 def not_attacked(playercol, rank, file, board): #checks, whether a certain square is attacked by a certain color
     enemy_color = {'w':'b','b':'w'}[playercol]
@@ -520,7 +657,7 @@ def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #
     file_diff = e_file - s_file
     forward = {'w':1, 'b':-1}[playercol]
     own_figure = s_piece[0]==playercol #own figure being moved
-    not_blocked_own = s_piece[0] != e_piece[0] #end square not of the same color (also keeps piece from staying on same square)
+    not_occupied_own = s_piece[0] != e_piece[0] #end square not of the same color (also keeps piece from staying on same square)
     move_in_domain = True
     path_available = True
     special_move = ''
@@ -583,7 +720,7 @@ def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #
                         break
                 if rook_unmoved:
                     special_move = 'castling_queenside'
-        move_in_domain_king1 = file_diff<=1 and rank_diff<=1 #one square in every direction
+        move_in_domain_king1 = abs(file_diff)<=1 and abs(rank_diff)<=1 #one square in every direction
         if move_in_domain_king1:
             special_move = ''
         move_in_domain_king2 = all([move_in_domain_castling, squares_free, squares_not_attacked, king_unmoved, rook_unmoved])#castling
@@ -605,96 +742,119 @@ def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #
     new_board[s_rank][s_file] = 'xX'
     if special_move=='en_passant':
         new_board[e_rank-forward][e_file] = 'xX'
-    king_rank, king_file = find_king(playercol, new_board)
+    king_rank, king_file = find_piece(playercol, new_board, 'K')
     not_in_check = not_attacked(playercol, king_rank, king_file, new_board)
-
-    print("own_figure, not_blocked_own, move_in_domain, path_available, not_in_check:\n",[own_figure, not_blocked_own, move_in_domain, path_available, not_in_check])#!!
-    if all([own_figure, not_blocked_own, move_in_domain, path_available, not_in_check]):
+    print("own_figure, not_occupied_own, move_in_domain, path_available, not_in_check:\n",[own_figure, not_occupied_own, move_in_domain, path_available, not_in_check])
+    if all([own_figure, not_occupied_own, move_in_domain, path_available, not_in_check]):
         return special_move if special_move else 'valid'
     else:
         return 'invalid'
+def can_make_move(playercol, board):#!!
+    pass
 
 """Main Loop"""
 ui = 'none'
-print("\n"+"CHESS (v.alpha)".center(width)+"""
-
- Welcome <user>!
- """)
+print("\n", name.center(width), "\n", (len(name)*"-").center(width), "\n")
 while True:
-    if ui in ['settings', 'einstellungen', 'iistellige']:
+    if ui in ['settings', 'e', 'einstellungen']: #settings
         print(lang['settings'])
-    # Stopwatch/Time Limit
-    # Piece Display
-    if ui in ['invert', 'umkehren', 'umchereh']:
+    elif ui in ['invert', 'i', 'umkehren']: #color inversion
         col['w'], col['l'], col['d'], col['b'] = col['b'], col['d'], col['l'], col['w']
         print(lang['inverted'])
-    if ui in ['size', 'grösse', 'grössi']:
-        ui = input(f" {lang['sizes']}\n {' / '.join([i for i in styles])} > ").lower()
+    elif ui in ['size', 's', 'grösse']: #size options
         try:
-            style = styles[ui]
+            style = styles[input(f" {lang['sizes']}\n {' / '.join([i for i in styles])} > ").lower()]
             width = 8*len(style['K'])+2
             print(lang['size_success'])
         except:
             print(lang['size_fail'])
-    if ui in ['flip', 'drehen', 'drehe']:
+    elif ui in ['flip', 'f', 'drehen']: #flip toggle
         if flip[1]==1:
             flip = {0:1,1:-1}
             print(lang['flip_on'])
         else:
             flip = {0:1,1:1}
             print(lang['flip_off'])
-    if ui in ['language', 'sprache', 'sprach']:
-        ui = input(f"{lang['language']}\n {' / '.join([i for i in languages])} > ").lower()
+    elif ui in ['language', 'l', 'sprache']: #language preferences
         try:
-            lang = languages[ui]
+            lang = languages[input(f"{lang['language']}\n {' / '.join([i for i in languages])} > ").lower()]
             print(lang['language_success'])
         except:
             print(lang['language_fail'])
-    if ui in ['', 'play', 'spielen', 'spiele']:
+    elif ui in ['time', 't', 'zeit']: #time configuration
+        try:
+            time_s = abs(int(input(lang['time_query'].format(time_s))))
+            print(lang['time_success'].format(time_s))
+            times = {'w':time_s, 'b':time_s}
+        except:
+            print(lang['time_fail'])
+    elif ui in ['', 'play', 'p', 'spielen']: #actual chess game
+        print(lang['play'])
         exit_game = ''
-        while True:
-            display_board(board)
-            playercol = {0:'w',1:'b'}[turn%2]
+        while True: #playerturns
+            playercol = {0:'w',1:'b'}[turn%2] #whose turn it is
+            display_board(board) #main display
             print("\n"+f"{lang[playercol]}{lang['turn']}".center(width))
-            king_rank, king_file = find_king(playercol, board)
-            if not not_attacked(playercol, king_rank, king_file, board):
+            if time_s: #how much time is left, starting timer
+                print(lang['time_left'].format(lang[playercol], times[playercol]).center(width))
+                time_start = time()
+                time_limit = Timer(times[playercol], time_up_toggle)
+                time_limit.start()
+            king_rank, king_file = find_piece(playercol, board, 'K')
+            if not not_attacked(playercol, *find_piece(playercol, board, 'K'), board): #Whether a player is in check
                 print("\n"+f"{lang[playercol]}{lang['check']}".center(width))
-            while True:
-                try:
+            while True: #loops until a valid move is entered by the user
+                #try:
                     move_start, move_end, move_force, *rest = input(lang['make_move']).lower().split()+[0,0,0]
-                    if move_start in ['resign','aufgeben', 'uufgeh']:
+                    if time_up:
+                        break
+                    if move_start in ['resign','aufgeben']: #resigning
                         exit_game ='resign'
                         break
-                    elif move_start in ['draw', 'remis'] and input(lang['draw_query'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]])).lower() in ['yes', 'ja']:
+                    elif move_start in ['draw', 'remis'] and input(lang['draw_query'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]])).lower() in ['yes', 'ja']: #agreed draw
                         exit_game = 'draw'
                         break
-                    elif move_start in ['pause']:
+                    elif move_start in ['pause']: #pausing game
                         exit_game = 'pause'
                         break
                     s_file, s_rank = a_to_n[move_start[0]], int(move_start[1])-1
                     e_file, e_rank = a_to_n[move_end[0]], int(move_end[1])-1
-                    assert all([-1<i<8 for i in [s_file, s_rank, e_file, e_rank]])
-                    print("\n",s_file,s_rank,e_file,e_rank)#!!
-                    move_type = validate_move(s_rank, s_file, e_rank, e_file, playercol)
+                    assert all([-1<i<8 for i in [s_file, s_rank, e_file, e_rank]]) #on the board
+                    move_type = validate_move(s_rank, s_file, e_rank, e_file, playercol) #valid move?
                     assert move_type!='invalid' or move_force=='force'
                     break
-                except:
+                #except:
                     continue
-            if exit_game=='resign':
+            if time_s: #subtract time from player clock
+                time_limit.cancel()
+                times[playercol] -= time() - time_start #update player time
+            if time_up: #win on time
+                print("\n\n",lang['time_up'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]]).center(width))
+                reset()
+                break
+            if exit_game=='resign': #resign
                 print(lang['resign'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]]).center(width))
-                board = deepcopy(board_template)
+                reset()
                 break
-            elif exit_game=='draw':
+            elif exit_game=='draw': #agreed draw
                 print(lang['draw'].center(width))
-                board = deepcopy(board_template)
+                reset()
                 break
-            elif exit_game=='pause':
+            elif exit_game=='pause': #game paused
                 print(lang['pause'].center(width))
                 break
-            if move_type=='valid':
+            if board[e_rank][e_file] != 'xX': #piece taken?
+                piece_taken = 0
+            else:
+                piece_taken += 1
+            if board[s_rank][s_file][1] == 'P': #pawn moved?
+                pawn_moved = 0
+            else:
+                pawn_moved += 1
+            if move_type=='valid': #normal move found
                 board[e_rank][e_file] = board[s_rank][s_file]
                 board[s_rank][s_file] = 'xX'
-            elif move_type=='conversion':
+            elif move_type=='conversion': #pawn promotion
                 conversion_dict = {'queen':'Q','rook':'R','bishop':'B','knight':'N',
                 'dame':'Q','turm':'R','läufer':'B','springer':'N',}
                 while True:
@@ -703,40 +863,65 @@ while True:
                     break
                 board[e_rank][e_file] = playercol+conversion_dict[ui]
                 board[s_rank][s_file] = 'xX'
-            elif move_type=='en_passant':
-                print(" EN PASSANT!")#!!
+            elif move_type=='en_passant': #en passant
                 board[e_rank-{'w':1, 'b':-1}[playercol]][e_file] = 'xX'
                 board[e_rank][e_file] = board[s_rank][s_file]
                 board[s_rank][s_file] = 'xX'
-            elif move_type=='castling_kingside':
-                print(" KINGSIDE")
+            elif move_type=='castling_kingside': #kingside castling
                 board[e_rank][e_file] = board[s_rank][s_file]
                 board[s_rank][s_file] = 'xX'
                 board[s_rank][s_file+1] = playercol+'R'
                 board[e_rank][7] = 'xX'
-            elif move_type=='castling_queenside':
-                print(" QUEENSIDE")
+            elif move_type=='castling_queenside': #queenside castling
                 board[e_rank][e_file] = board[s_rank][s_file]
                 board[s_rank][s_file] = 'xX'
                 board[s_rank][s_file-1] = playercol+'R'
                 board[e_rank][0] = 'xX'
-            elif move_force=='force':
+            elif move_force=='force': #???
                 board[e_rank][e_file] = board[s_rank][s_file]
                 board[s_rank][s_file] = 'xX'
-            history.append((move_start, move_end))
+            history.append((move_start, move_end)) #add move to history
+            board_history.append(tuple(tuple(rank) for rank in board)) #add board to board history
+            if board_history.count(board_history[-1])>2: #draw by threefold repetition - DISCLAIMER: WILL NOT TAKE INTO ACCOUNT THE POSSIBILITIES OF 'en passant' OR 'castling' !!
+                print(lang['draw_threefold'].center(width))
+                print(lang['draw'].center(width))
+                reset()
+                break
+            elif pawn_moved>=50 or piece_taken>=50: #draw by 50-move rule
+                print(lang['draw_50moverule'+('_pawn' if pawn_moved>=50 else '_piece')].center(width))#!!
+                print(lang['draw'].center(width))
+                reset()
+                break
+            material = []
+            for rank in board:
+                for square in rank:
+                    if square!='xX' and square[1]!='K':
+                        material.append(square)
+            insufficient_material = [(),('bB'),('wB'), ('bN'), ('wN')]
+            if tuple(material) in insufficient_material: #draw by insufficient material
+                print(lang['draw_material'].center(width))
+                print(lang['draw'].center(width))
+                reset()
+                break
+            if tuple(material) in [('bB','wB'), ('wB','bB')]: #draw by insufficient material (2 bishops on the same color)
+                B1_rank, B1_file = find_piece(material[0][0], board, 'B')
+                B2_rank, B2_file = find_piece(material[1][0], board, 'B')
+                if ((B1_rank+B1_file)%2)==((B2_rank+B2_file)%2):
+                    print(lang['draw_material'].center(width))
+                    print(lang['draw'].center(width))
+                    reset()
+                    break
             turn += 1
-        #!! To-Do:
-        # Checkmate
-        # Stalemate
-        # Draw (insufficient material, 50-move rule)
-        # 3-fold repetition
-    if ui in ['hello', 'hallo', 'hallihallo', 'hey', 'hei', 'hoi']:
-        print("Hi there :)")
-    if ui in ['exit', 'quit', 'schliessen', 'stop', 'stopp']:
+    elif ui in ['quit', 'q', 'exit', 'schliessen']: #close script
         break
-    ui = input(lang['main']).lower()
-
-# Fischerandom - 960
-# Undo
-# (Simple AI)
-# (Notation/Loading games)
+    ui = input(lang['main']).lower() #main menu user input
+#Dekoratives
+    # Piece/Point Display
+#Praktisches
+    # Checkmate
+    # Draw: Stalemate (Patt)
+#Mögliche Zukunftspläne
+    # Fischerandom/960 chess
+    # Undo
+    # (Simple AI)
+    # (Notation/Loading games)
