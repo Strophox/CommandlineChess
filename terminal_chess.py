@@ -49,9 +49,9 @@ Type one of the following options to modify:
 'checkmate':"{}'s king is checkmated. {} wins the game!", 'stalemate':"{} is in stalemate.",
 'draw_query':' {} proposes a draw. Does {} agree? (yes/no) > ', 'resign':"{} resigns. {} wins the game.", 'pause':"The game has been paused.", 'draw':"The game is drawn.",
 'draw_material':"Neither player has sufficient material to mate the other.", 'draw_threefold':"Threefold repetition has occured.", 'draw_50moverule_piece':"No piece has been taken for 50 moves.", 'draw_50moverule_pawn':"No pawn has been moved for 50 moves.",
-'color_query':" The LEFTMOST icon should always appear as a BLACK KING on a DARK SQUARE\n (Should it instead appear as a white king on a light square, invert the colors using --> 'invert')\n Insert name of desired color palette > ", 'color_success':" Color palette was changed.", 'color_fail':" Such a palette doesn't exist.",
+'color_query':" The LEFTMOST icon should always appear as a BLACK KING on a DARK SQUARE\n (Should it instead appear as a white king on a light square, invert the colors using -->'invert')\n Insert name of desired color palette > ", 'color_success':" Color palette was changed.", 'color_fail':" Such a palette doesn't exist.",
 'sizes':" The following sizes are available (square rasterized fonts are recommended for optimal display):", 'size_success':" Successfully changed size.\n", 'size_fail':" That size wasn't found!",
-'flip_on':" The board will now flip after each player's turn.", 'flip_off':" The board stops flipping.", 'inverted':" The colors have been inverted, see changes under --> 'color'",
+'flip_on':" The board will now flip after each player's turn.", 'flip_off':" The board stops flipping.", 'inverted':" The colors have been inverted, see changes under -->'color'",
 'language':" Choose one of the following languages:", 'language_fail':" That language doesn't exist.", 'language_success':" Language successfully changed.",
 'time_query':" How much time (sec.) should one player have? (0 for infinite, current: {}) > ", 'time_success':" Time per player was set to {}s.", 'time_fail':" Time was not updated.",
 'time_up':"{} ran out of time. {} wins the game.", 'time_left':"{} has {:.1f} seconds left on his clock.",
@@ -80,9 +80,9 @@ Geben Sie eines der folgenden ein um es zu bearbeiten:
 'checkmate':"Der König von {} steht schachmatt. {} gewinnt die Partie!", 'stalemate':"{} steht im Patt.",
 'draw_query':' {} schlägt ein Remis vor. Akzeptiert {}? (ja/nein) > ', 'resign':"{} gibt auf. {} gewinnt die Partie.", 'pause':"Die Partie wurde pausiert.", 'draw':"Die Partie endet in einem Remis.",
 'draw_material':"Keiner der beiden Spieler hat genug Material, um zu gewinnen.", 'draw_threefold':"Dieselbe Position hat sich dreimal wiederholt.", 'draw_50moverule_piece':"Es wurde keine Figur während 50 Zügen geschlagen.", 'draw_50moverule_pawn':"Es wurde kein Bauer während 50 Zügen bewegt.",
-'color_query':" Die linke Ikone sollte als einen SCHWARZEN KÖNIG auf einem DUNKELN FELD erscheinen.\n (Sollte es stattdessen als weisser König auf hellem Feld erscheinen, kehren sie die Farben um mittels --> 'umkehren') \n Geben Sie den Namen der gewünschten Palette ein > ", 'color_success':" Farbeinstellungen wurden angepasst.", 'color_fail':" Eine solche Farbpalette existiert nicht.",
+'color_query':" Die äusserste linke Ikone sollte einen SCHWARZEN KÖNIG auf einem DUNKELN FELD darstellen.\n (Sollte stattdessen ein weisser König auf hellem Feld erscheinen, kehren sie die Farben um mittels -->'umkehren') \n Geben Sie den Namen der gewünschten Palette ein > ", 'color_success':" Farbeinstellungen wurden angepasst.", 'color_fail':" Eine solche Farbpalette existiert nicht.",
 'sizes':" Wählen Sie eine der folgenden Grössen (quadratische Rasterschriftarten sind für optimale Darstellung empfohlen):", 'size_success':" Die Grösse wurde erfolgreich aktualisiert\n", 'size_fail':" Die eingegebene Grösse existiert nicht!",
-'flip_on':" Das Brett dreht sich nach jedem Zug dem entsprechenden Spieler.", 'flip_off':" Das Brett dreht sich nicht mehr.", 'inverted':" Die Farben wurden umgekehrt, siehe -> 'Farbe'",
+'flip_on':" Das Brett dreht sich nach jedem Zug dem entsprechenden Spieler.", 'flip_off':" Das Brett dreht sich nicht mehr.", 'inverted':" Die Farben wurden umgekehrt, siehe -->'Farbe'",
 'language':" Die folgenden Sprachen stehen zur Verfügung:", 'language_fail':" Die gewünschte Sprache wurde nicht gefunden.", 'language_success':" Sprache erfolgreich geändert.",
 'time_query':" Wieviel Zeit (Sek.) sollte jeder Spieler haben? (0 für Unendlich, bisher: {}) > ", 'time_success':" Zeitlimit wurde auf {}s pro Spieler gesetzt.", 'time_fail':" Zeitlimit wurde nicht geändert.",
 'time_up':"{} hat das Zeitlimit erreicht. {} gewinnt die Partie.", 'time_left':"{} hat {:.1f} Sekunden übrig.",
@@ -684,7 +684,7 @@ def display_any(board, style, col):
         for row_num, row in enumerate(style['K']):
             print(''.join([style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {1:col['l'], 0:col['d']}[(rank_num+file_num)%2]) for file_num, square in enumerate(rank)]).center(width))
 def reset(): #reset game (board, time, other statistics)
-    global board, board_history, history, time_up, times, piece_taken, pawn_moved, turn
+    global board, board_history, history, time_up, times, piece_taken, pawn_moved, turn, time_limit
     board = deepcopy(board_template)
     board_history = []
     history = []
@@ -693,6 +693,7 @@ def reset(): #reset game (board, time, other statistics)
     piece_taken = 0
     pawn_moved = 0
     turn = 0
+    time_limit.cancel()
 def time_up_toggle(): #change global time_up
     print("Time is up.")
     global time_up
