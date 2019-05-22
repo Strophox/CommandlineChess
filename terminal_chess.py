@@ -4,6 +4,7 @@
 from time import time
 from threading import Timer
 from copy import deepcopy
+from random import choice, randint
 name = "Terminal Chess (v1.0) (by Lucas W. 2019)"
 board_template = [ #standard setup
 ['wR','wN','wB','wQ','wK','wB','wN','wR'],
@@ -32,12 +33,12 @@ languages = { #UI language
 'main':"\n What do you want to do? play/settings/quit > ",
 'settings':"""
 Type one of the following options to modify:
-- 'time': change time limit per player
+- 'time': change time limit (+increment) per player
 - 'size': choose size of pieces and board
 - 'color': choose an appropriate color palette
 - 'invert': invert the palettes under 'color'
 - 'language': change interface language
-- 'flip': whether the board flips after each player's turn""",
+- 'fischerandom': play with a randomised home rank!""",
 'play':"""
  How to play:
  - Type '<start> <end>' to make a move (e.g. 'e2 e4')
@@ -53,9 +54,9 @@ Type one of the following options to modify:
 'sizes':" The following sizes are available (square rasterized fonts are recommended for optimal display):", 'size_success':" Successfully changed size.\n", 'size_fail':" That size wasn't found!",
 'flip_on':" The board will now flip after each player's turn.", 'flip_off':" The board stops flipping.", 'inverted':" The colors have been inverted, see changes under -->'color'",
 'language':" Choose one of the following languages:", 'language_fail':" That language doesn't exist.", 'language_success':" Language successfully changed.",
-'time_query':" How much time (sec.) should one player have? (0 for infinite, current: {}) > ", 'time_success':" Time per player was set to {}s.", 'time_fail':" Time was not updated.",
+'time_query':" How much time (s) should one player have? (increment as a second variable)\n (0 for infinite, current time/increment: {}s/{}s) > ", 'time_success':" Time per player was set to {}s (increment: {}s).", 'time_fail':" Times were not updated.",
 'time_up':"{} ran out of time. {} wins the game.", 'time_left':"{} has {:.1f} seconds left on his clock.",
-'make_move':" Make a move ¦ ", 'invalid_move':"Invalid Move!",
+'make_move':" Make a move ¦ ", 'invalid_move':"Invalid Move!", 'fischerandom':" Home rank has been randomised.",
 'conversion':" To what piece do you want to promote your pawn? (Queen/Rook/Bishop/Knight) >"
 },
 'deutsch':{
@@ -68,7 +69,7 @@ Geben Sie eines der folgenden ein um es zu bearbeiten:
 - 'Farbe': Wählen Sie die passenden Farben für das Schachbrett
 - 'umkehren': Kehren Sie die Farben um, sollten die Paletten unter 'Farbe' nicht stimmen
 - 'Sprache': Sprache ändern
-- 'Drehen': Ob das Brett nach jedem Zug sich entsprechend dreht""",
+- '960': Spielen Sie mit einer von 960 zufälligen Anfangsreihen!""",
 'play':"""
  Wie man spielt:
  - Schreiben Sie '<start> <end>' um zu ziehen (z.B. 'e2 e4')
@@ -84,9 +85,9 @@ Geben Sie eines der folgenden ein um es zu bearbeiten:
 'sizes':" Wählen Sie eine der folgenden Grössen (quadratische Rasterschriftarten sind für optimale Darstellung empfohlen):", 'size_success':" Die Grösse wurde erfolgreich aktualisiert\n", 'size_fail':" Die eingegebene Grösse existiert nicht!",
 'flip_on':" Das Brett dreht sich nach jedem Zug dem entsprechenden Spieler.", 'flip_off':" Das Brett dreht sich nicht mehr.", 'inverted':" Die Farben wurden umgekehrt, siehe -->'Farbe'",
 'language':" Die folgenden Sprachen stehen zur Verfügung:", 'language_fail':" Die gewünschte Sprache wurde nicht gefunden.", 'language_success':" Sprache erfolgreich geändert.",
-'time_query':" Wieviel Zeit (Sek.) sollte jeder Spieler haben? (0 für Unendlich, bisher: {}) > ", 'time_success':" Zeitlimit wurde auf {}s pro Spieler gesetzt.", 'time_fail':" Zeitlimit wurde nicht geändert.",
+'time_query':" Wieviel Zeit (s) sollte jeder Spieler haben? (Inkrement als zweite Variable)\n (0 für Unendlich, bisherige Zeit/Inkrement: {}s/{}s) > ", 'time_success':" Zeitlimit wurde auf {}s pro Spieler gesetzt. (Inkrement: {}s)", 'time_fail':" Zeitlimit wurde nicht geändert.",
 'time_up':"{} hat das Zeitlimit erreicht. {} gewinnt die Partie.", 'time_left':"{} hat {:.1f} Sekunden übrig.",
-'make_move':" Machen Sie einen Zug ¦ ", 'invalid_move':"Ungültiger Zug!",
+'make_move':" Machen Sie einen Zug ¦ ", 'invalid_move':"Ungültiger Zug!", 'fischerandom':" Anfangsreihen wurden gemischt.",
 'conversion':" In welche Figur wollen Sie Ihren Bauern umwandeln? (Dame/Turm/Läufer/Springer) >"
 },
 }
@@ -646,6 +647,7 @@ board_history = [] #recorded positions
 turn = 0 #turn number
 time_s = 0 #standard time
 times = {'w':time_s, 'b':time_s} #individual times
+increment = 0
 time_up = False
 piece_taken = 0 #how many moves since <>
 pawn_moved = 0 #how many moves since <>
@@ -693,7 +695,8 @@ def reset(): #reset game (board, time, other statistics)
     piece_taken = 0
     pawn_moved = 0
     turn = 0
-    time_limit.cancel()
+    if time_s:
+        time_limit.cancel()
 def time_up_toggle(): #change global time_up
     print("Time is up.")
     global time_up
@@ -782,7 +785,7 @@ def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #
             for i in range(1, abs(rank_diff)):
                 path_available = board[s_rank+sign(rank_diff)*i][s_file+sign(file_diff)*i]=="xX"
                 if not path_available: break
-    elif s_piece[1]=='K': #King/König
+    elif s_piece[1]=='K': #King/König #!!
         move_in_domain_castling = (rank_diff, abs(file_diff))==(0,2)
         squares_free = board[e_rank][e_file]=='xX' and board[e_rank][s_file+int(file_diff/2)]=='xX'
         squares_not_attacked = not_attacked(playercol, e_rank, e_file, board) and not_attacked(playercol, e_rank, s_file+int(file_diff/2), board)
@@ -910,11 +913,35 @@ while True:
             print(lang['language_fail'])
     elif ui in ['time', 't', 'zeit']: #time configuration
         try:
-            time_s = abs(int(input(lang['time_query'].format(time_s))))
-            print(lang['time_success'].format(time_s))
+            time_s_temp, increment_temp, *rest = input(lang['time_query'].format(time_s, increment)).split()+[0,0]
+            time_s_temp, increment_temp = abs(int(time_s_temp)), abs(int(increment_temp))
+            time_s, increment = time_s_temp, increment_temp
+            print(lang['time_success'].format(time_s, increment))
             times = {'w':time_s, 'b':time_s}
         except:
             print(lang['time_fail'])
+    elif ui in ['fischerandom', 'r', '960']:
+        reset()
+        slots = [0,1,2,3,4,5,6,7]
+        bishop1, bishop2 = choice(slots[::2]), choice(slots[::-2])
+        slots.remove(bishop1)
+        slots.remove(bishop2)
+        queen = choice(slots)
+        slots.remove(queen)
+        knight1 = choice(slots)
+        slots.remove(knight1)
+        knight2 = choice(slots)
+        slots.remove(knight2)
+        rook1, king, rook2 = tuple(slots)
+        board[0][rook1], board[7][rook1] = 'wR', 'bR'
+        board[0][rook2], board[7][rook2] = 'wR', 'bR'
+        board[0][king], board[7][king] = 'wK', 'bK'
+        board[0][bishop1], board[7][bishop1] = 'wB', 'bB'
+        board[0][bishop2], board[7][bishop2] = 'wB', 'bB'
+        board[0][knight1], board[7][knight1] = 'wN', 'bN'
+        board[0][knight2], board[7][knight2] = 'wN', 'bN'
+        board[0][queen], board[7][queen] = 'wQ', 'bQ'
+        print(lang['fischerandom'])
     elif ui in ['', 'play', 'p', 'spielen']: #actual chess game
         print(lang['play'])
         exit_game = ''
@@ -967,16 +994,16 @@ while True:
                 print("\n\n",lang['time_up'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]]).center(width))
                 reset()
                 break
-            if exit_game=='resign': #resign
+            if exit_game=='pause': #game paused
+                print(lang['pause'].center(width))
+                break
+            elif exit_game=='resign': #resign
                 print(lang['resign'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]]).center(width))
                 reset()
                 break
             elif exit_game=='draw': #agreed draw
                 print(lang['draw'].center(width))
                 reset()
-                break
-            elif exit_game=='pause': #game paused
-                print(lang['pause'].center(width))
                 break
             if board[e_rank][e_file] != 'xX': #piece taken?
                 piece_taken = 0
@@ -1003,15 +1030,15 @@ while True:
                 board[e_rank][e_file] = board[s_rank][s_file]
                 board[s_rank][s_file] = 'xX'
             elif move_type=='castling_kingside': #kingside castling
-                board[e_rank][e_file] = board[s_rank][s_file]
                 board[s_rank][s_file] = 'xX'
-                board[s_rank][s_file+1] = playercol+'R'
+                board[{'w':0, 'b':7}[playercol]][6] = playercol+'K'
                 board[e_rank][7] = 'xX'
+                board[{'w':0, 'b':7}[playercol]][5] = playercol+'R'
             elif move_type=='castling_queenside': #queenside castling
-                board[e_rank][e_file] = board[s_rank][s_file]
                 board[s_rank][s_file] = 'xX'
-                board[s_rank][s_file-1] = playercol+'R'
-                board[e_rank][0] = 'xX'
+                board[{'w':0, 'b':7}[playercol]][2] = playercol+'K'
+                board[e_rank][7] = 'xX'
+                board[{'w':0, 'b':7}[playercol]][3] = playercol+'R'
             elif move_force=='force': #???
                 board[e_rank][e_file] = board[s_rank][s_file]
                 board[s_rank][s_file] = 'xX'
@@ -1046,16 +1073,17 @@ while True:
                     print(lang['draw'].center(width))
                     reset()
                     break
+            if time_s:
+                times[playercol] += increment
             turn += 1
     elif ui in ['quit', 'q', 'exit', 'schliessen']: #close script
         break
     ui = input(lang['main']).lower() #main menu user input
 #Dekoratives
-    # (Piece / Point Display?)
+    # Figuren-/ Punkte-Anzeige
 #Praktisches
-    # - - -
-#Mögliche Zukunftspläne
-    # Fischerandom/960 chess
+    # Rochade für Chess960 (!)
+#Mögliche Zukunftspläne ?
     # Undo
-    # (Simple AI)
-    # (Notation/Loading games)
+    # Simpler Schachcomputer
+    # Notation / Position laden
