@@ -1037,7 +1037,7 @@ while True:
             elif move_type=='castling_queenside': #queenside castling
                 board[s_rank][s_file] = 'xX'
                 board[{'w':0, 'b':7}[playercol]][2] = playercol+'K'
-                board[e_rank][7] = 'xX'
+                board[e_rank][0] = 'xX'
                 board[{'w':0, 'b':7}[playercol]][3] = playercol+'R'
             elif move_force=='force': #???
                 board[e_rank][e_file] = board[s_rank][s_file]
