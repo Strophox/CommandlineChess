@@ -91,7 +91,7 @@ Geben Sie eines der folgenden ein um es zu bearbeiten:
 'conversion':" In welche Figur wollen Sie Ihren Bauern umwandeln? (Dame/Turm/Läufer/Springer) >"
 },
 }
-lang = languages['deutsch'] #language used
+lang = languages['english'] #language used
 styles = { #board styles/sizes
 '2x2':{
 'K':(
