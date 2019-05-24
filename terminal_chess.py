@@ -1013,9 +1013,9 @@ while True:
                 pawn_moved = 0
             else:
                 pawn_moved += 1
-            if move_type=='valid': #normal move found
-                board[e_rank][e_file] = board[s_rank][s_file]
+            if move_type=='valid' or move_force=='force': #normal move found
                 board[s_rank][s_file] = 'xX'
+                board[e_rank][e_file] = board[s_rank][s_file]
             elif move_type=='conversion': #pawn promotion
                 conversion_dict = {'queen':'Q','rook':'R','bishop':'B','knight':'N',
                 'dame':'Q','turm':'R','läufer':'B','springer':'N',}
@@ -1023,8 +1023,8 @@ while True:
                     ui = input(lang['conversion']).lower()
                     if ui not in conversion_dict: continue
                     break
-                board[e_rank][e_file] = playercol+conversion_dict[ui]
                 board[s_rank][s_file] = 'xX'
+                board[e_rank][e_file] = playercol+conversion_dict[ui]
             elif move_type=='en_passant': #en passant
                 board[e_rank-{'w':1, 'b':-1}[playercol]][e_file] = 'xX'
                 board[e_rank][e_file] = board[s_rank][s_file]
@@ -1039,9 +1039,6 @@ while True:
                 board[{'w':0, 'b':7}[playercol]][2] = playercol+'K'
                 board[e_rank][0] = 'xX'
                 board[{'w':0, 'b':7}[playercol]][3] = playercol+'R'
-            elif move_force=='force': #???
-                board[e_rank][e_file] = board[s_rank][s_file]
-                board[s_rank][s_file] = 'xX'
             history.append((move_start, move_end)) #add move to history
             board_history.append(tuple(tuple(rank) for rank in board)) #add board to board history
             if board_history.count(board_history[-1])>2: #draw by threefold repetition - DISCLAIMER: WILL NOT TAKE INTO ACCOUNT THE POSSIBILITIES OF 'en passant' OR 'castling' !!
