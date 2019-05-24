@@ -1,11 +1,11 @@
 ﻿# coding: utf-8
-# Written by Lucas W. in Python 3.7.0
+# Written by Lucas W. for Python 3.7.0
 """Initialisation"""
 from time import time
 from threading import Timer
 from copy import deepcopy
-from random import choice, randint
-name = "Terminal Chess (v1.0) (by Lucas W. 2019)"
+from random import choice
+name = "Terminal Chess (by Lucas W. 2019)"
 board_template = [ #standard setup
 ['wR','wN','wB','wQ','wK','wB','wN','wR'],
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
@@ -16,7 +16,7 @@ board_template = [ #standard setup
 ['bP','bP','bP','bP','bP','bP','bP','bP'],
 ['bR','bN','bB','bQ','bK','bB','bN','bR'],
 ]
-board_temp = [ #temporary setup
+board_temp = [ #for temporary setups
 ['xX','xX','xX','xX','xX','xX','xX','bK'],
 ['xX','xX','xX','xX','xX','xX','xX','xX'],
 ['xX','xX','xX','xX','xX','xX','xX','xX'],
@@ -91,8 +91,8 @@ Geben Sie eines der folgenden ein um es zu bearbeiten:
 'conversion':" In welche Figur wollen Sie Ihren Bauern umwandeln? (Dame/Turm/Läufer/Springer) >"
 },
 }
-lang = languages['deutsch'] #lang used
-styles = { #board styles
+lang = languages['deutsch'] #language used
+styles = { #board styles/sizes
 '2x2':{
 'K':(
 '----',
@@ -640,28 +640,28 @@ col_palettes = {
 }
 }
 palette_type = 0
-col = col_palettes[palette_type]['lighter'] #white/black/dark/light/transparent(space)
-flip = {0:1,1:-1} #flip after each turn
-history = [] #recorded moves
-board_history = [] #recorded positions
-turn = 0 #turn number
-time_s = 0 #standard time
+col = col_palettes[palette_type]['lighter'] # colors used
+flip = {0:1,1:-1} #flip board after each turn
+history = [] #records moves
+board_history = [] #records positions
+turn = 0 #turn counter
+time_s = 0 #time given to each player
 times = {'w':time_s, 'b':time_s} #individual times
-increment = 0
+increment = 0 #increment time
 time_up = False
-piece_taken = 0 #how many moves since <>
-pawn_moved = 0 #how many moves since <>
-s_rank, s_file, e_rank, e_file = 0, 0, 0, 0 #start rank/file, end rank/file
+piece_taken = 0 #how many moves since piece taken
+pawn_moved = 0 #how many moves since pawn taken
+s_rank, s_file, e_rank, e_file = 0, 0, 0, 0 #start rank, start file; end rank, end file
 a_to_n = dict(zip('abcdefgh', range(8))) #convert file letters to numbers
 n_to_a = dict(zip(range(8), 'abcdefgh')) #convert numbers to file letters
 
 """Functions"""
-def sign(x): #1, -1 or 0 for positive/negative numbers and zero
+def sign(x): #returns -1 or 1 for negative or positive numbers and zero
     try:
         return int(x/abs(x))
     except:
         return 1
-def display_board_single(board): #smallest display of chess board in terminal
+def display_board_single(board): #smallest display of chess board in terminal using provided Unicode characters/letters
     Unicode = {'w':{'K':'♔', 'Q':'♕', 'R':'♖', 'B':'♗', 'N':'♘', 'P':'♙'}, 'b':{'K':'♚', 'Q':'♛', 'R':'♜', 'B':'♝', 'N':'♞', 'P':'♟'}, 'x':{'X':'-'}}
     Ascii = {'w':{'K':'k', 'Q':'q', 'R':'r', 'B':'b', 'N':'n', 'P':'p'}, 'b':{'K':'K', 'Q':'Q', 'R':'R', 'B':'B', 'N':'N', 'P':'P'}, 'x':{'X':'-'}}
     style_used = Ascii
@@ -673,15 +673,15 @@ def display_board_single(board): #smallest display of chess board in terminal
     print('\n  '+"abcdefgh"[::flip[turn%2]])
 def display_board(board): # displays board in terminal
     print()
-    for rank_num, rank in enumerate(board[::-flip[turn%2]]):
-        for row_num, row in enumerate(style['K']):
-            print(' '+str((8-rank_num if flip[turn%2]==1 else rank_num+1)) if row_num==int(len(style['K'])/2) else '  ', end='')
-            print(''.join([style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+file_num)%2]) for file_num, square in enumerate(rank[::flip[turn%2]])]))
-            #for file_num, square in enumerate(rank[::flip[turn%2]]): #old version of the previous line
+    for rank_num, rank in enumerate(board[::-flip[turn%2]]): #for each rank
+        for row_num, row in enumerate(style['K']): #for each row in a tile (e.g. 5 rows for size 5x5)
+            print(' '+str((8-rank_num if flip[turn%2]==1 else rank_num+1)) if row_num==int(len(style['K'])/2) else '  ', end='') #rank numbers
+            print(''.join([style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+file_num)%2]) for file_num, square in enumerate(rank[::flip[turn%2]])])) #VERY unpythonic but faster(?) code: essentially prints the whole line at once (correct tiles and colors)
+            #for file_num, square in enumerate(rank[::flip[turn%2]]): #old/more readable version of the previous unpythonic line
             #    print(style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {0:col['l'], 1:col['d']}[(rank_num+file_num)%2]), end='')
             #print()
     print('  '+"{s2}A{s}B{s}C{s}D{s}E{s}F{s}G{s}H{s2}".format(s=(len(style['K'][0])-1)*' ', s2=int((len(style['K'][0])-1)/2)*' ')[::flip[turn%2]])
-def display_any(board, style, col):
+def display_any(board, style, col): #display any board/tiles (rectangles)
     for rank_num, rank in enumerate(board[::-1]):
         for row_num, row in enumerate(style['K']):
             print(''.join([style[square[1]][row_num].replace('X', col[square[0]]).replace('-', {1:col['l'], 0:col['d']}[(rank_num+file_num)%2]) for file_num, square in enumerate(rank)]).center(width))
@@ -701,186 +701,186 @@ def time_up_toggle(): #change global time_up
     print("Time is up.")
     global time_up
     time_up = True
-def find_piece(color, board, piece_type, depth=1): #finds the king of a specific player on the board
+def find_piece(color, board, piece_type, depth=1): #finds a specific piece of a player on the board
     for rank_num, rank in enumerate(board):
         for file_num, square in enumerate(rank):
-            if square==color+'K':
+            if square==color+piece_type:
                 depth -= 1
                 if not depth:
                     return rank_num, file_num
     return (-1,-1)
-def not_attacked(playercol, rank, file, board): #checks, whether a certain square is attacked by a certain color
+def not_attacked(playercol, rank, file, board): #checks, whether a certain square is attacked by a certain player
     enemy_color = {'w':'b','b':'w'}[playercol]
     forward = {'w':-1, 'b':1}[enemy_color]
-    for x,y in ((1,0), (-1,0), (0,1), (0,-1)): #attacked by queen/rook?
+    for x,y in ((1,0), (-1,0), (0,1), (0,-1)): #queen/rook
         steps = 1
-        while -1<rank+steps*x<8 and -1<file+steps*y<8:
-            if board[rank+steps*x][file+steps*y] in [enemy_color+'Q', enemy_color+'R']:
+        while -1<rank+steps*x<8 and -1<file+steps*y<8: #on board
+            if board[rank+steps*x][file+steps*y] in [enemy_color+'Q', enemy_color+'R']: #attacked
                 return False
-            if board[rank+steps*x][file+steps*y] != 'xX':
+            if board[rank+steps*x][file+steps*y] != 'xX': #path blocked otherwise
                 break
             steps += 1
-    for x,y in ((1,1), (-1,1), (1,-1), (-1,-1)): #attacked by queen/bishop?
+    for x,y in ((1,1), (-1,1), (1,-1), (-1,-1)): #queen/bishop
         steps = 1
         while -1<rank+steps*x<8 and -1<file+steps*y<8:
-            if board[rank+steps*x][file+steps*y] in [enemy_color+'Q', enemy_color+'B']:
+            if board[rank+steps*x][file+steps*y] in [enemy_color+'Q', enemy_color+'B']: #attacked
                 return False
-            if board[rank+steps*x][file+steps*y] != 'xX':
+            if board[rank+steps*x][file+steps*y] != 'xX': #path blocked otherwise
                 break
             steps += 1
-    for x,y in ((1,2), (2,1), (2,-1), (1,-2), (-1,-2), (-2,-1), (-2,1), (-1,2)): #attacked by knight?
+    for x,y in ((1,2), (2,1), (2,-1), (1,-2), (-1,-2), (-2,-1), (-2,1), (-1,2)): #knight
         if -1<rank+x<8 and -1<file+y<8:
-            if board[rank+x][file+y]==enemy_color+'N':
+            if board[rank+x][file+y]==enemy_color+'N': #attacked
                 return False
-    for sidestep in (1,-1): #attacked by pawn?
+    for sidestep in (1,-1): #pawn
         if -1<rank+forward<8 and -1<file+sidestep<8:
-            if board[rank+forward][file+sidestep]==enemy_color+'P':
+            if board[rank+forward][file+sidestep]==enemy_color+'P': #attacked
                 return False
-    for x,y in [(x,y) for x in (0,1,-1) for y in (0,1,-1)]: #attacked by king?
+    for x,y in [(x,y) for x in (0,1,-1) for y in (0,1,-1)]: #king
         if not -1<rank+x<8 or not -1<file+y<8:
             continue
-        if board[rank+x][file+y]==enemy_color+'K':
+        if board[rank+x][file+y]==enemy_color+'K': #attacked
             return False
     return True
 def validate_move(s_rank, s_file, e_rank, e_file, playercol, history=history): #checks, whether a given move is legal
-    if not all([-1<i<8 for i in [s_file, s_rank, e_file, e_rank]]): return 'invalid'
-    s_piece = board[s_rank][s_file]
-    e_piece = board[e_rank][e_file]
+    if not all([-1<i<8 for i in [s_file, s_rank, e_file, e_rank]]): return 'invalid' #on the board
+    s_piece = board[s_rank][s_file] #piece on the starting square
+    e_piece = board[e_rank][e_file] #piece on the end square
     rank_diff = e_rank - s_rank
     file_diff = e_file - s_file
     forward = {'w':1, 'b':-1}[playercol]
     own_figure = s_piece[0]==playercol #own figure being moved
-    not_occupied_own = s_piece[0] != e_piece[0] #end square not of the same color (also keeps piece from staying on same square)
-    move_in_domain = True
-    path_available = True
+    not_occupied_own = s_piece[0] != e_piece[0] #piece on th end square has a different color (also keeps a piece from staying on same square)
+    move_in_domain = True #assumption
+    path_available = True #assumption
     special_move = ''
-    if s_piece[1]=='R': #Rook/Turm
-        move_in_domain = bool(rank_diff) ^ bool(file_diff) #move vertically or horizontally only
+    if s_piece[1]=='R': #Rook /Turm
+        move_in_domain = bool(rank_diff) ^ bool(file_diff) #either move vertically xor horizontally
         if rank_diff!=0: #moved along a file
-            for i in range(1, abs(rank_diff)):
-                path_available = board[s_rank+sign(rank_diff)*i][s_file]=="xX"
+            for steps in range(1, abs(rank_diff)):
+                path_available = board[s_rank+sign(rank_diff)*steps][s_file]=="xX" #False if blocked
                 if not path_available: break
         elif file_diff!=0: #moved along a rank
-            for i in range(1, abs(file_diff)):
-                path_available = board[s_rank][s_file+sign(file_diff)*i]=="xX"
+            for steps in range(1, abs(file_diff)):
+                path_available = board[s_rank][s_file+sign(file_diff)*steps]=="xX" #False if blocked
                 if not path_available: break
-    elif s_piece[1]=='N': #Knight/Springer
+    elif s_piece[1]=='N': #Knight /Springer
         move_in_domain = (abs(rank_diff), abs(file_diff))==(1,2) or (abs(rank_diff), abs(file_diff))==(2,1) #L-shape
-    elif s_piece[1]=='B': #Bishop/Läufer
+    elif s_piece[1]=='B': #Bishop /Läufer
         move_in_domain = abs(rank_diff)==abs(file_diff) #on a diagonal
-        for i in range(1, abs(rank_diff)):
-            path_available = board[s_rank+sign(rank_diff)*i][s_file+sign(file_diff)*i]=="xX" #diagonal not blocked
+        for steps in range(1, abs(rank_diff)):
+            path_available = board[s_rank+sign(rank_diff)*steps][s_file+sign(file_diff)*steps]=="xX" #False if blocked
             if not path_available: break
-    elif s_piece[1]=='Q': #Queen/Dame
-        move_in_domain = bool(rank_diff)^bool(file_diff) or abs(rank_diff)==abs(file_diff) #along rank, file or diagonal
+    elif s_piece[1]=='Q': #Queen /Dame
+        move_in_domain = bool(rank_diff)^bool(file_diff) or abs(rank_diff)==abs(file_diff) #along rank, file or diagonal (combination of rook and bishop)
         if bool(rank_diff)^bool(file_diff) and rank_diff!=0: #along a file
-            for i in range(1, abs(rank_diff)):
-                path_available = board[s_rank+sign(rank_diff)*i][s_file]=="xX"
+            for steps in range(1, abs(rank_diff)):
+                path_available = board[s_rank+sign(rank_diff)*steps][s_file]=="xX"
                 if not path_available: break
         elif bool(rank_diff)^bool(file_diff) and file_diff!=0: #along a rank
-            for i in range(1, abs(file_diff)):
-                path_available = board[s_rank][s_file+sign(file_diff)*i]=="xX"
+            for steps in range(1, abs(file_diff)):
+                path_available = board[s_rank][s_file+sign(file_diff)*steps]=="xX"
                 if not path_available: break
         elif abs(rank_diff)==abs(file_diff): #on a diagonal
-            for i in range(1, abs(rank_diff)):
-                path_available = board[s_rank+sign(rank_diff)*i][s_file+sign(file_diff)*i]=="xX"
+            for steps in range(1, abs(rank_diff)):
+                path_available = board[s_rank+sign(rank_diff)*steps][s_file+sign(file_diff)*steps]=="xX"
                 if not path_available: break
-    elif s_piece[1]=='K': #King/König #!!
-        move_in_domain_castling = (rank_diff, abs(file_diff))==(0,2)
+    elif s_piece[1]=='K': #King /König
+        move_in_domain_castling = (rank_diff, abs(file_diff))==(0,2) #detects castling if K is moved 2 squares to the side
         squares_free = board[e_rank][e_file]=='xX' and board[e_rank][s_file+int(file_diff/2)]=='xX'
         squares_not_attacked = not_attacked(playercol, e_rank, e_file, board) and not_attacked(playercol, e_rank, s_file+int(file_diff/2), board)
         king_unmoved = False
-        if (s_rank, s_file)=={'w':(0,4), 'b':(7,4)}[playercol]:
+        if (s_rank, s_file)=={'w':(0,4), 'b':(7,4)}[playercol]: #K on starting square
             king_unmoved = True
             for move in history:
-                if move[0]=={'w':'e1', 'b':'e8'}[playercol]:
+                if move[0]=={'w':'e1', 'b':'e8'}[playercol]: #king not moved during game
                     king_unmoved = False
                     break
         rook_unmoved = False
-        if file_diff>0 and board[s_rank][7]==playercol+'R':
+        if file_diff>0 and board[s_rank][7]==playercol+'R': #kingside castling
                 rook_unmoved = True
                 for move in history:
-                    if move[0]=={'w':'h1', 'b':'h8'}[playercol]:
+                    if move[0]=={'w':'h1', 'b':'h8'}[playercol]: #rook never moved
                         rook_unmoved = False
                         break
                 if rook_unmoved:
                     special_move = 'castling_kingside'
-        if file_diff<0 and board[s_rank][0]==playercol+'R':
+        if file_diff<0 and board[s_rank][0]==playercol+'R': #queenside castling
                 rook_unmoved = True
                 for move in history:
-                    if move[0]=={'w':'a1', 'b':'a8'}[playercol]:
+                    if move[0]=={'w':'a1', 'b':'a8'}[playercol]: #rook never moved
                         rook_unmoved = False
                         break
                 if rook_unmoved:
                     special_move = 'castling_queenside'
-        move_in_domain_king1 = abs(file_diff)<=1 and abs(rank_diff)<=1 #one square in every direction
+        move_in_domain_king1 = abs(file_diff)<=1 and abs(rank_diff)<=1 #normal king move: max. one square in every direction
         if move_in_domain_king1:
             special_move = ''
-        move_in_domain_king2 = all([move_in_domain_castling, squares_free, squares_not_attacked, king_unmoved, rook_unmoved])#castling
-        move_in_domain = any([move_in_domain_king1, move_in_domain_king2])
-    elif s_piece[1]=='P': #Pawn/Bauer
-        move_in_domain_pawn1 = (rank_diff, file_diff) == (forward, 0) #one square
-        move_in_domain_pawn2 = (rank_diff, file_diff, s_rank) == (2*forward, 0, {'w':1, 'b':6}[playercol]) #two squares
-        move_in_domain_pawn3 = (rank_diff, abs(file_diff)) == (forward, 1) and board[e_rank][e_file]!='xX' #diagonal
-        if move_in_domain_pawn1 and e_rank == {'w':7,'b':0}[playercol]:
+        move_in_domain_king2 = all([move_in_domain_castling, squares_free, squares_not_attacked, king_unmoved, rook_unmoved]) #castling
+        move_in_domain = any([move_in_domain_king1, move_in_domain_king2]) #if any normal move or castling
+    elif s_piece[1]=='P': #Pawn /Bauer
+        move_in_domain_pawn1 = (rank_diff, file_diff) == (forward, 0) #one square forward
+        move_in_domain_pawn2 = (rank_diff, file_diff, s_rank) == (2*forward, 0, {'w':1, 'b':6}[playercol]) #two squares forward
+        move_in_domain_pawn3 = (rank_diff, abs(file_diff)) == (forward, 1) and board[e_rank][e_file]!='xX' #diagonal capture
+        if move_in_domain_pawn1 and e_rank == {'w':7,'b':0}[playercol]: #promotion
             special_move = 'conversion'
-        elif (rank_diff, abs(file_diff)) == (forward, 1) and history[-1]==(n_to_a[e_file]+str(e_rank+1+forward), n_to_a[e_file]+str(e_rank+1-forward)) and board[e_rank-forward][e_file]=={'w':'bP', 'b':'wP'}[playercol]:
+        elif (rank_diff, abs(file_diff)) == (forward, 1) and history[-1]==(n_to_a[e_file]+str(e_rank+1+forward), n_to_a[e_file]+str(e_rank+1-forward)) and board[e_rank-forward][e_file]=={'w':'bP', 'b':'wP'}[playercol]: #unpythonic en-passant
             special_move = 'en_passant'
-        move_in_domain = any([move_in_domain_pawn1, move_in_domain_pawn2, move_in_domain_pawn3, special_move])
-        if any([move_in_domain_pawn1, move_in_domain_pawn2]):
-            path_available = board[e_rank][e_file]=='xX'
-    new_board = deepcopy(board)
+        move_in_domain = any([move_in_domain_pawn1, move_in_domain_pawn2, move_in_domain_pawn3, special_move]) #if any legal move available
+        if any([move_in_domain_pawn1, move_in_domain_pawn2]): #if forward move
+            path_available = board[e_rank][e_file]=='xX' #path must be free
+    new_board = deepcopy(board) #check for any king checks if move was performed on a separate board
     new_board[e_rank][e_file] = s_piece
     new_board[s_rank][s_file] = 'xX'
     if special_move=='en_passant':
         new_board[e_rank-forward][e_file] = 'xX'
-    king_rank, king_file = find_piece(playercol, new_board, 'K')
-    not_in_check = not_attacked(playercol, king_rank, king_file, new_board)
-    #print("own_figure, not_occupied_own, move_in_domain, path_available, not_in_check:\n",[own_figure, not_occupied_own, move_in_domain, path_available, not_in_check]) #for debugging
+    king_rank, king_file = find_piece(playercol, new_board, 'K') #find king on new board
+    not_in_check = not_attacked(playercol, king_rank, king_file, new_board) #check whether king still in check if move was performed
     if all([own_figure, not_occupied_own, move_in_domain, path_available, not_in_check]):
         return special_move if special_move else 'valid'
     else:
         return 'invalid'
-def can_make_move(playercol, board): #whether a player can make a move (at all)
+def can_make_move(playercol, board): #whether a player can make a move at all
+    forward = {'w':1, 'b':-1}[playercol]
     for rank_num, rank in enumerate(board):
         for file_num, square in enumerate(rank):
-            if square[0]!=playercol: continue
-            if square[1] in 'RQ':
+            if square[0]!=playercol: continue #checks every player piece
+            if square[1] in 'RQ': #checks if any rook/orthogonal queen moves are possible
                 steps = 1
                 for x,y in ((0,1), (0,-1), (1,0), (-1,0)):
                     while -1<rank_num+x*steps<8 and -1<file_num+y*steps<8:
                         if validate_move(rank_num, file_num, rank_num+x*steps, file_num+y*steps, playercol)!='invalid':
                             return True
                         steps += 1
-            if square[1] in 'BQ':
+            if square[1] in 'BQ': #checks if any bishop/diagonal queen moves are possible
                 steps = 1
                 for x,y in ((1,1), (1,-1), (-1,1), (-1,-1)):
                     while -1<rank_num+x*steps<8 and -1<file_num+y*steps<8:
                         if validate_move(rank_num, file_num, rank_num+x*steps, file_num+y*steps, playercol)!='invalid':
                             return True
                         steps += 1
-            elif square[1]=='K':
+            elif square[1]=='K': #checks if any king moves are possible
                 for x,y in ((0,0), (0,1), (0,-1), (1,0), (1,1), (1,-1), (-1,0), (-1,1), (-1,-1)):
                     if validate_move(rank_num, file_num, rank_num+x, file_num+y, playercol)!='invalid':
                         return True
-            elif square[1]=='N':
+            elif square[1]=='N': #checks if any knight moves are possible
                 for x,y in ((1,2), (1,-2), (2,1), (2,-1), (-1,2), (-1,-2), (-2,1), (-2,-1)):
                     if validate_move(rank_num, file_num, rank_num+x, file_num+y, playercol)!='invalid':
                         return True
-            elif square[1]=='P':
-                for x,y in ((1,0), (1,1), (1,-1), (2,0)):
+            elif square[1]=='P': #checks if any pawn moves are possible
+                for x,y in ((1,0), (forward,1), (forward,-1), (2*forward,0)):
                     if validate_move(rank_num, file_num, rank_num+x, file_num+y, playercol)!='invalid':
                         return True
     return False
 
 """Main Loop"""
-ui = 'none'
+ui = 'none' #user input
 print("\n", name.center(width), "\n", (len(name)*"-").center(width), "\n")
 while True:
     if ui in ['settings', 'e', 'einstellungen']: #settings
-        print(lang['settings'])
+        print(lang['settings']) #any text is accessed through the 'lang' dictionary, return the appropriate text for a given language
     elif ui in ['color','c','colour','farbe']:
-        for palette in col_palettes[palette_type]:
+        for palette in col_palettes[palette_type]: #showcase color palettes
             print("\n", palette.center(width))
             display_any([['bK','bB','wP','wQ']], style, col_palettes[palette_type][palette])
         try:
@@ -914,7 +914,7 @@ while True:
     elif ui in ['time', 't', 'zeit']: #time configuration
         try:
             time_s_temp, increment_temp, *rest = input(lang['time_query'].format(time_s, increment)).split()+[0,0]
-            time_s_temp, increment_temp = abs(int(time_s_temp)), abs(int(increment_temp))
+            time_s_temp, increment_temp = abs(int(time_s_temp)), abs(int(increment_temp)) #positive integer times
             time_s, increment = time_s_temp, increment_temp
             print(lang['time_success'].format(time_s, increment))
             times = {'w':time_s, 'b':time_s}
@@ -923,17 +923,17 @@ while True:
     elif ui in ['fischerandom', 'r', '960']:
         reset()
         slots = [0,1,2,3,4,5,6,7]
-        bishop1, bishop2 = choice(slots[::2]), choice(slots[::-2])
+        bishop1, bishop2 = choice(slots[::2]), choice(slots[::-2]) #choose bishops for one white/black square respectively
         slots.remove(bishop1)
         slots.remove(bishop2)
-        queen = choice(slots)
+        queen = choice(slots) #queen position
         slots.remove(queen)
-        knight1 = choice(slots)
+        knight1 = choice(slots) #first knight
         slots.remove(knight1)
-        knight2 = choice(slots)
+        knight2 = choice(slots) #second knight
         slots.remove(knight2)
-        rook1, king, rook2 = tuple(slots)
-        board[0][rook1], board[7][rook1] = 'wR', 'bR'
+        rook1, king, rook2 = tuple(slots) #the two rooks and king are assigned the remaining 3 positions (king in the middle)
+        board[0][rook1], board[7][rook1] = 'wR', 'bR' #... change all the pieces accordingly
         board[0][rook2], board[7][rook2] = 'wR', 'bR'
         board[0][king], board[7][king] = 'wK', 'bK'
         board[0][bishop1], board[7][bishop1] = 'wB', 'bB'
@@ -942,54 +942,55 @@ while True:
         board[0][knight2], board[7][knight2] = 'wN', 'bN'
         board[0][queen], board[7][queen] = 'wQ', 'bQ'
         print(lang['fischerandom'])
-    elif ui in ['', 'play', 'p', 'spielen']: #actual chess game
+    elif ui in ['', 'play', 'p', 'spielen']: #the actual game
         print(lang['play'])
         exit_game = ''
-        while True: #playerturns
+        while True: # loops for each playerturn
             playercol = {0:'w',1:'b'}[turn%2] #whose turn it is
-            display_board(board) #main display
-            print("\n"+lang['turn'].format(lang[playercol]).center(width))
-            if time_s: #how much time is left, starting timer
-                print(lang['time_left'].format(lang[playercol], times[playercol]).center(width))
+            display_board(board)
+            print("\n"+lang['turn'].format(lang[playercol]).center(width)) #print whose turn it is
+            if time_s: #how much time is left, starting the timer
+                print(lang['time_left'].format(lang[playercol], times[playercol]).center(width)) #print how much time is left
                 time_start = time()
-                time_limit = Timer(times[playercol], time_up_toggle)
+                time_limit = Timer(times[playercol], time_up_toggle) #timer
                 time_limit.start()
             king_rank, king_file = find_piece(playercol, board, 'K')
-            king_not_in_check = not_attacked(playercol, *find_piece(playercol, board, 'K'), board)
-            if not can_make_move(playercol, board): #no legal move available
-                if king_not_in_check: #king not in check -> stalemate
+            king_not_in_check = not_attacked(playercol, *find_piece(playercol, board, 'K'), board) #whether the player's king is (not) in check
+            if not can_make_move(playercol, board): #no legal move available...
+                if king_not_in_check: #...king not in check -> stalemate
                     print(lang['stalemate'].format(lang[playercol]).center(width))
                     print(lang['draw'].center(width))
-                else: #king in check -> checkmate
+                else: #...king in check -> checkmate
                     print(lang['checkmate'].format(lang[playercol],lang[{'w':'b','b':'w'}[playercol]]).center(width))
                 reset()
                 break
             if not king_not_in_check: #player is in check
-                print("\n"+lang['check'].format(lang[playercol]).center(width))
+                print("\n"+lang['check'].format(lang[playercol]).center(width)) #print player is in check
             while True: #loops until a valid move is entered by the user
                 try:
                     move_start, move_end, move_force, *rest = input(lang['make_move']).lower().split()+[0,0,0]
-                    if time_up:
+                    if time_up: #time runs out
                         break
                     if move_start in ['resign', 'r','aufgeben']: #resigning
                         exit_game ='resign'
                         break
-                    elif move_start in ['draw', 'd', 'remis'] and input(lang['draw_query'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]])).lower() in ['yes', 'ja']: #agreed draw
+                    elif move_start in ['draw', 'd', 'remis'] and input(lang['draw_query'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]])).lower() in ['yes', 'ja']: #agreed draw (python cries when seeing such long if clauses)
                         exit_game = 'draw'
                         break
                     elif move_start in ['pause', 'p']: #pausing game
                         exit_game = 'pause'
                         break
-                    s_file, s_rank = a_to_n[move_start[0]], int(move_start[1])-1
+                    s_file, s_rank = a_to_n[move_start[0]], int(move_start[1])-1 #if numbers are entered
                     e_file, e_rank = a_to_n[move_end[0]], int(move_end[1])-1
-                    move_type = validate_move(s_rank, s_file, e_rank, e_file, playercol) #valid move?
-                    assert move_type!='invalid' or move_force=='force'
+                    move_type = validate_move(s_rank, s_file, e_rank, e_file, playercol) #valid move (if so, what type)
+                    assert move_type!='invalid' or move_force=='force' #move not invalid
                     break
                 except:
+                    #print("That isn't a valid move.") wasn't necessary here
                     continue
-            if time_s: #subtract time from player clock
+            if time_s: #if timed game
                 time_limit.cancel()
-                times[playercol] -= time() - time_start #update player time
+                times[playercol] -= time() - time_start #reduce player time
             if time_up: #win on time
                 print("\n\n",lang['time_up'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]]).center(width))
                 reset()
@@ -997,7 +998,7 @@ while True:
             if exit_game=='pause': #game paused
                 print(lang['pause'].center(width))
                 break
-            elif exit_game=='resign': #resign
+            elif exit_game=='resign': #resignation
                 print(lang['resign'].format(lang[playercol], lang[{'w':'b','b':'w'}[playercol]]).center(width))
                 reset()
                 break
@@ -1005,11 +1006,11 @@ while True:
                 print(lang['draw'].center(width))
                 reset()
                 break
-            if board[e_rank][e_file] != 'xX': #piece taken?
+            if board[e_rank][e_file] != 'xX': #piece taken this round?
                 piece_taken = 0
             else:
                 piece_taken += 1
-            if board[s_rank][s_file][1] == 'P': #pawn moved?
+            if board[s_rank][s_file][1] == 'P': #pawn moved this round?
                 pawn_moved = 0
             else:
                 pawn_moved += 1
@@ -1018,7 +1019,7 @@ while True:
             elif move_type=='conversion': #pawn promotion
                 conversion_dict = {'queen':'Q','rook':'R','bishop':'B','knight':'N',
                 'dame':'Q','turm':'R','läufer':'B','springer':'N',}
-                while True:
+                while True: #loops until pawn promoted
                     ui = input(lang['conversion']).lower()
                     if ui not in conversion_dict: continue
                     break
@@ -1040,46 +1041,46 @@ while True:
                 board[{'w':0, 'b':7}[playercol]][3] = playercol+'R'
             history.append((move_start, move_end)) #add move to history
             board_history.append(tuple(tuple(rank) for rank in board)) #add board to board history
-            if board_history.count(board_history[-1])>2: #draw by threefold repetition - DISCLAIMER: WILL NOT TAKE INTO ACCOUNT THE POSSIBILITIES OF 'en passant' OR 'castling' !!
+            if board_history.count(board_history[-1])>2: #draw by threefold repetition - DISCLAIMER: WILL NOT TAKE INTO ACCOUNT THE CHANGES OF MOVE POSSIBILITIES, i.e. 'en passant' (more than one turn passed) OR 'castling' (king/rook moved) !!
                 print(lang['draw_threefold'].center(width))
                 print(lang['draw'].center(width))
                 reset()
                 break
             elif pawn_moved>=50 or piece_taken>=50: #draw by 50-move rule
-                print(lang['draw_50moverule'+('_pawn' if pawn_moved>=50 else '_piece')].center(width))#!!
+                print(lang[ 'draw_50moverule'+('_pawn' if pawn_moved>=50 else '_piece') ].center(width))
                 print(lang['draw'].center(width))
                 reset()
                 break
             material = []
             for rank in board:
                 for square in rank:
-                    if square!='xX' and square[1]!='K':
+                    if square[1] not in ['K', 'X']: #counts material (excluding King)
                         material.append(square)
-            insufficient_material = [(),('bB'),('wB'), ('bN'), ('wN')]
-            if tuple(material) in insufficient_material: #draw by insufficient material
+            if tuple(material) in [(),('bB'),('wB'), ('bN'), ('wN')]: #draw by insufficient material
                 print(lang['draw_material'].center(width))
                 print(lang['draw'].center(width))
                 reset()
                 break
-            if tuple(material) in [('bB','wB'), ('wB','bB')]: #draw by insufficient material (2 bishops on the same color)
+            if tuple(material) in [('bB','wB'), ('wB','bB')]: #draw by insufficient material (both players have one bishop)
                 B1_rank, B1_file = find_piece(material[0][0], board, 'B')
                 B2_rank, B2_file = find_piece(material[1][0], board, 'B')
-                if ((B1_rank+B1_file)%2)==((B2_rank+B2_file)%2):
+                if ((B1_rank+B1_file)%2)==((B2_rank+B2_file)%2): #... (those 2 bishops have to be on the same color)
                     print(lang['draw_material'].center(width))
                     print(lang['draw'].center(width))
                     reset()
                     break
-            if time_s:
-                times[playercol] += increment
+            if time_s: #if timed game
+                times[playercol] += increment #try adding the increment
             turn += 1
     elif ui in ['quit', 'q', 'exit', 'schliessen']: #close script
         break
     ui = input(lang['main']).lower() #main menu user input
+#!! Personal ToDo list(German)
 #Dekoratives
-    # Figuren-/ Punkte-Anzeige
+    # Figuren-/Punkte-Anzeige
 #Praktisches
     # Rochade für Chess960 (!)
 #Mögliche Zukunftspläne ?
-    # Undo
+    # 'Undo'
     # Simpler Schachcomputer
     # Notation / Position laden
