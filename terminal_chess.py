@@ -1014,8 +1014,7 @@ while True:
             else:
                 pawn_moved += 1
             if move_type=='valid' or move_force=='force': #normal move found
-                board[s_rank][s_file] = 'xX'
-                board[e_rank][e_file] = board[s_rank][s_file]
+                board[s_rank][s_file], board[e_rank][e_file] = 'xX', board[s_rank][s_file]
             elif move_type=='conversion': #pawn promotion
                 conversion_dict = {'queen':'Q','rook':'R','bishop':'B','knight':'N',
                 'dame':'Q','turm':'R','läufer':'B','springer':'N',}
