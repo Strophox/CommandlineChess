@@ -1,5 +1,5 @@
 # TerminalChess
-Chess for the terminal line
+Chess for the command line
 Updated on the 24 May 2019
 
 To run the script, only Python (including its standard libraries) have to be installed.
