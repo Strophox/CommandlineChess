@@ -1,4 +1,4 @@
-# TerminalChess
+# CommandlineChess
 Chess for the command line
 Updated on the 24 May 2019
 
