@@ -21,3 +21,5 @@ Known Issues include:
 This program was orignally made for a school project, where we were free to do anything we would like.
 I chose to do Terminal Chess for the fun (being in the school's chess club), the challenge (implementation with few lines but still readable code) and the artistic value (restricted display, pixel art graphics).
 Though it is not perfect, the program is open-source and free-to-play.
+
+![Screenshot of console interaction](./terminal_chess_screenshot.png)
